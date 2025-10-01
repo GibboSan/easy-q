@@ -4,7 +4,7 @@ This is the **Quantum Optimization** module of the **EasyQ Framework**, a compre
 
 This module focuses on quantum optimization experiments with Quantum Approximate Optimization Algorithm (QAOA), providing automated experimentation and performance analysis capabilities.
 
-> 📖 **Framework Documentation**: For installation instructions, common features, and an overview of the complete EasyQ framework (including Quantum Optimization), see the [main README](../README.md).
+> 📖 **Framework Documentation**: For installation instructions, common features, and an overview of the complete EasyQ framework (including Quantum Machine Learning), see the [main README](../README.md).
 
 ---
 
