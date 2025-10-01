@@ -1,0 +1,4 @@
+mem: 124G
+cpus-per-task: 32
+time: 48:00:00
+partition: debug
