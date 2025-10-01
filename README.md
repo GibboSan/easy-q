@@ -120,15 +120,20 @@ ipython
 
 ```
 quantum_framework/
-├── quantum_optimization/          # Optimization framework
+├── quantum_optimization/         # Optimization framework
 │   ├── README.md                 # Optimization-specific documentation
+│   ├── merge_output.py           # Merging experiments results
 │   ├── run.py                    # Main execution script
-│   ├── automate.py               # Experiment automation
+│   ├── params.yaml               # Parameters of the main execution script
+│   ├── experiments_automation    # Experiment automation
 │   ├── pipeline/                 # Core optimization modules
-│   │   ├── problems/            # Problem class implementations
-│   │   ├── circuits/            # QAOA circuit implementations
-│   │   └── utils.py             # Utility functions
-│   └── examples/                # Example configurations
+│       ├── problems/             # Problem class implementations
+│       ├── circuits/             # QAOA circuit implementations
+│       ├── backends.py           # Backend selection functions
+│       ├── main.py               # QAOA Workflow
+│       ├── plotter.py            # Plot functions
+│       ├── runtime.py            # Qiskit runtime primitives functions
+│       └── utils.py              # Utility functions
 │
 ├── quantum_machine_learning/     # ML framework
 │   ├── README.md                 # ML-specific documentation
