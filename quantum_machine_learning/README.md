@@ -8,20 +8,6 @@ This module focuses on quantum machine learning experiments with Quantum Support
 
 ---
 
-## 📋 Table of Contents
-
-- [Supported Quantum Methods](#-Supported Quantum Methods)
-- [Quantum Methods](#-quantum-methods)
-- [Dataset Support](#-dataset-support)
-- [Configuration](#-configuration)
-- [Running Experiments](#-running-experiments)
-- [Automated Experimentation](#-automated-experimentation)
-- [Results Analysis](#-results-analysis)
-- [Advanced Features](#-advanced-features)
-- [Examples](#-examples)
-
----
-
 ## 🧠 Usage
 
 ### 🔹 Quick Start
