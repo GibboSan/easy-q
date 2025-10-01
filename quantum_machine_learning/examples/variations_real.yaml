@@ -1,0 +1,15 @@
+seed: 42
+output_folder_path: "data/output"
+backend: "Aer"
+dataset_type: "real"
+file_path: "data/UNSW_NB15/UNSW_NB15_training-set.csv"
+datasets_params:
+  dataset_name: ["unsw_nb15"]
+  sample_size: [500, 1000]
+  reduction: ["pca", "umap"]
+  features: [2]
+  sampling: ["balanced"]
+quantum_methods: "QSVC"
+methods_params:
+  reps_map: [1]
+  entangl_map: ["linear"]

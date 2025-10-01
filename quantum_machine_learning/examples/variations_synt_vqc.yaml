@@ -1,0 +1,16 @@
+seed: 42
+output_folder_path: "../data/output"
+backend: "Aer"
+dataset_type: "synthetic"
+datasets_params:
+  sample_size: [50]
+  features: [2]
+  class_sep: [1.0, 0.8, 0.6, 0.4, 0.2]
+quantum_methods: "VQC"
+methods_params:
+  reps_map: [1]
+  entangl_map: ["linear"]
+  reps_ansatz: [1]
+  entangl_ansatz: ["reverse_linear"]
+  opt_method: ["COBYLA"]
+  maxiter: [1000]

@@ -1,0 +1,12 @@
+seed: 42
+output_folder_path: "../data/output"
+backend: "Aer"
+dataset_type: "synthetic"
+datasets_params:
+  sample_size: [50]
+  features: [2]
+  class_sep: [1.0, 0.8, 0.6, 0.4, 0.2]
+quantum_methods: "QSVC"
+methods_params:
+  reps_map: [1]
+  entangl_map: ["linear"]

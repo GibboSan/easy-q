@@ -1,0 +1,12 @@
+seed: 42
+output_folder_path: "../data/output"
+backend: "Aer"
+dataset_type: "toys_red"
+datasets_params:
+  dataset_name: ["Breast_cancer"]
+  reduction: ["pca", "umap"]
+  features: [2, 5, 10, 15, 20]
+quantum_methods: "QSVC"
+methods_params:
+  reps_map: [1]
+  entangl_map: ["full", "linear", "circular", "sca", "reverse_linear"]

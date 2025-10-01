@@ -1,0 +1,10 @@
+seed: 42
+output_folder_path: "../data/output"
+backend: "Aer"
+dataset_type: "toys"
+datasets_params:
+  dataset_name: ["Breast_cancer"]
+quantum_methods: "QSVC"
+methods_params:
+  reps_map: [1, 2]
+  entangl_map: ["linear", "reverse_linear", "circular", "sca"]
