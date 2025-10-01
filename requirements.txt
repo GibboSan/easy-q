@@ -1,0 +1,17 @@
+matplotlib
+networkx
+numpy
+pyDOE
+pylatexenc
+PyYAML
+qiskit>=1.4.1,<2.0.0
+qiskit-aer
+qiskit-algorithms
+qiskit-ibm-runtime
+qiskit-optimization
+qiskit-machine-learning==0.8.3
+scipy
+ortools
+scikit-learn
+umap-learn
+ipython
