@@ -1,8 +1,10 @@
-# EasyQ - Quantum Optimization Made Easy
+# Quantum Optimization - EasyQ Framework
 
-**EasyQ** is a flexible and extensible framework designed to solve combinatorial optimization problems using the **Quantum Approximate Optimization Algorithm (QAOA)** across multiple quantum backends. The framework supports various problem classes, customizable quantum circuit templates, and large-scale experimentation automation — including **SLURM** job submission. It is built on top of the [IBM Qiskit](https://www.ibm.com/quantum/qiskit) library.
+This is the **Quantum Optimization** module of the **EasyQ Framework**, a comprehensive quantum computing framework developed by [Spindox](https://makeamark.spindox.it/) within the [Ingenios](https://makeamark.spindox.it/project/ingenios/) project.
 
-This framework has been developed by [Spindox](https://makeamark.spindox.it/) within the scope of the [Ingenios](https://makeamark.spindox.it/project/ingenios/) project.
+This module focuses on quantum optimization experiments with Quantum Approximate Optimization Algorithm (QAOA), providing automated experimentation and performance analysis capabilities.
+
+> 📖 **Framework Documentation**: For installation instructions, common features, and an overview of the complete EasyQ framework (including Quantum Optimization), see the [main README](../README.md).
 
 ---
 
@@ -16,20 +18,6 @@ This framework has been developed by [Spindox](https://makeamark.spindox.it/) wi
 - Example problems (e.g., MaxCut, Quadratic Group Selection, Production Planning) and QAOA circuits for handling constraints natively  
 - Automated experiment management with full SLURM support  
 - Built-in plotting utilities for analysis and visualization  
-
----
-
-## 📦 Installation
-
-Clone the repository, create a virtual environment, and install the required dependencies:
-
-```bash
-git clone <your_repo_url>
-cd ingenios_project
-python -m venv venv
-source venv/bin/activate   # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-````
 
 ---
 
