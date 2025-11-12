@@ -2,7 +2,7 @@
 import logging
 from typing import Type, Optional
 
-from pyDOE import lhs
+from pyDOE import lhs 
 from qiskit import QuantumCircuit
 from qiskit.primitives import BindingsArrayLike, BaseEstimatorV2
 from qiskit.providers import Backend
