@@ -106,6 +106,26 @@ def parameter_optimization(
                     perturbation=optimization_params['perturbation']
                 )
 
+                # maxiter = int(optimization_params['maxiter'])
+                # a0 = float(optimization_params['learning_rate'])
+                # c0 = float(optimization_params['perturbation'])
+                # alpha = float(optimization_params.get('learning_rate_decay', 0.602))
+                # gamma = float(optimization_params.get('perturbation_decay', 0.101))
+                # A = int(optimization_params.get('stability_constant', max(1, int(0.1 * maxiter))))
+
+                # k = np.arange(maxiter, dtype=float)
+                # lr_schedule = a0 / np.power(k + 1.0 + A, alpha)
+                # pert_schedule = c0 / np.power(k + 1.0, gamma)
+
+                # optimizer = SPSA(
+                #     maxiter=maxiter,
+                #     learning_rate=lr_schedule,
+                #     perturbation=pert_schedule,
+                #     trust_region=bool(optimization_params.get('trust_region', False)),
+                #     blocking=bool(optimization_params.get('blocking', False)),
+                #     last_avg=optimization_params.get('last_avg', None)
+                # )
+
                 def objective_wrapper(params):
                     return cost_estimator(params, circuit, hamiltonian, estimator, objective_vals, cache, run)
 
