@@ -14,18 +14,18 @@ class QAOACircuit:
         seed: int,
         problem: AbstractProblem,
         num_qubits: int,
-        p: int = 1,
+        num_layers: int = 1,
         backend: Optional[Backend] = None
     ):
         self.seed = seed
         self.problem = problem
         self.hamiltonian = problem.hamiltonian
         self.num_qubits = num_qubits
-        self.p = p
+        self.num_layers = num_layers
         self._backend = backend
 
-        self.gammas = ParameterVector("gammas", p)
-        self.betas = ParameterVector("betas", p)
+        self.gammas = ParameterVector("gammas", num_layers)
+        self.betas = ParameterVector("betas", num_layers)
 
         self._circuit: Optional[QuantumCircuit] = None
         self._transpiled_circuit: Optional[QuantumCircuit] = None
@@ -66,7 +66,7 @@ class QAOACircuit:
 
         qc.compose(self._initial_state(qreg), qubits=qreg, inplace=True)
 
-        for i in range(self.p):
+        for i in range(self.num_layers):
             self._cost_operator(qc, qreg, self.gammas[i])
             self._mixer_operator(qc, qreg, self.betas[i])
 
