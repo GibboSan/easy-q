@@ -18,10 +18,10 @@ class AncillaQAOACircuit(QAOACircuit):
         seed: int,
         problem: AbstractProblem,
         num_qubits: int,
-        p: int = 1,
+        num_layers: int = 1,
         backend: Optional[Backend] = None
     ):
-        super().__init__(seed, problem, num_qubits, p, backend)
+        super().__init__(seed, problem, num_qubits, num_layers, backend)
         self.qubit_subsets = self.problem.get_qubit_subsets_from_sum1_constraints()
         self.uncontrolled_qubit_indices = [i for i in range(self.num_qubits) if not any(i in subset for subset in self.qubit_subsets)]
         self.n_ancillas = len(self.qubit_subsets)
@@ -100,7 +100,7 @@ class AncillaQAOACircuit(QAOACircuit):
 
         qc.compose(self._initial_state(qreg), inplace=True)
 
-        for i in range(self.p):
+        for i in range(self.num_layers):
             self._cost_operator(qc, qreg, self.gammas[i])
             self._mixer_operator(qc, qreg, self.betas[i])
 
