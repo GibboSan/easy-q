@@ -108,12 +108,12 @@ def main():
 
         output_folder_name = label + "_out"
         output_path = os.path.join(exp_root, output_folder_name)
-        rel_output_path = os.path.relpath(output_path, exp_root)
+        rel_output_path = os.path.relpath(output_path, exp_root).replace(os.sep, "/")
 
         config["output_folder"] = rel_output_path
         config["cache_filename"] = f"{rel_output_path}/cache.yaml"
         config_path = os.path.join(run_dir, f"{label}.yaml")
-        rel_config_path = os.path.relpath(config_path, exp_root)
+        rel_config_path = os.path.relpath(config_path, exp_root).replace(os.sep, "/")
 
         with open(config_path, "w") as out_file:
             yaml.dump(ordered_dict_to_dict(config), out_file, sort_keys=False)
