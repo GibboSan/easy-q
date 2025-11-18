@@ -15,3 +15,4 @@ ortools
 scikit-learn
 umap-learn
 ipython
+openpyxl
