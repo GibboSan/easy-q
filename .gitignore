@@ -1,6 +1,9 @@
 # Ignore local Python virtual environment
 /easy-q_env/
 
+# Ignore experiment output folders
+quantum_optimization/experiments_automation/exp_*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
