@@ -158,13 +158,14 @@ def parameter_optimization(
         if not completed_runs:
             raise RuntimeError("All runs cached but no valid results found.")
         best = min(completed_runs, key=lambda r: r["best_cost"])
+        best_nfev = len(best.get("objective_values", []))
 
         objective_fun_vals_all = [r.get("objective_values", []) for r in completed_runs]
         final_params_all = [r.get("best_params") for r in completed_runs]
 
-        return best["best_params"], objective_fun_vals_all, final_params_all
+        return best["best_params"], best["best_cost"], best_nfev, objective_fun_vals_all, final_params_all
 
-    return best_result.x, objective_fun_vals_all, final_params_all
+    return best_result.x, best_result.fun, best_result.nfev, objective_fun_vals_all, final_params_all
 
 
 
