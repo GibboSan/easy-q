@@ -4,6 +4,9 @@
 # Ignore experiment output folders
 quantum_optimization/experiments_automation/exp_*/
 
+# Ignore delme folders
+delme*/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
