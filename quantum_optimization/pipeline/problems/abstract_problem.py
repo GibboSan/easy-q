@@ -42,7 +42,7 @@ class AbstractProblem(ABC):
         return self._hamiltonian
 
     def build_hamiltonian(self) -> SparsePauliOp:
-        qubo = QuadraticProgramToQubo().convert(self._quadratic_problem)
+        qubo = QuadraticProgramToQubo().convert(self._quadratic_binary_problem)
         hamiltonian, _ = qubo.to_ising()
         return hamiltonian
 
