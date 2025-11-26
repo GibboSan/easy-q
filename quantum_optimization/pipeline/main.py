@@ -152,6 +152,7 @@ def single_run(parameter_dict: dict) -> dict:
         "logic_qubits": problem.hamiltonian.num_qubits,
         "physical_qubits": physical_qubits,
         "layers": num_layers,
+        "transpiled_circuit_depth": tqc.depth(),
         "starting_points": num_starting_points,
         "optimal_parameters": list(optimal_params),
         "best_classic_bistring": classic_best[0],
