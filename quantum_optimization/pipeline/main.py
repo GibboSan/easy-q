@@ -79,7 +79,7 @@ def single_run(parameter_dict: dict) -> dict:
 
     logger.info(f"Optimizing gammas and betas with {num_starting_points} starting points within {lower_bound} and {upper_bound}")
     tic = time.perf_counter()
-    optimal_params, objective_fun_vals_all, final_params_all = parameter_optimization(
+    optimal_params, optimal_energy, optimal_nfev, objective_fun_vals_all, final_params_all = parameter_optimization(
         num_layers,
         num_starting_points,
         (lower_bound, upper_bound),
@@ -155,6 +155,8 @@ def single_run(parameter_dict: dict) -> dict:
         "transpiled_circuit_depth": tqc.depth(),
         "starting_points": num_starting_points,
         "optimal_parameters": list(optimal_params),
+        "optimal_energy": float(optimal_energy),
+        "optimization_nfev": int(optimal_nfev),
         "best_classic_bistring": classic_best[0],
         "best_classic_objective": classic_best[1],
         "best_classic_status": problem.status,
