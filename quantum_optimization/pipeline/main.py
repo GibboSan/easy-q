@@ -9,7 +9,12 @@ from pipeline.backends import get_aer_from_backend, get_real_backend
 from pipeline.plotter import Plotter
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.runtime import parameter_optimization, sample_circuit
-from pipeline.utils import find_most_promising_feasible_bitstring, class_importer, get_circuit_metrics
+from pipeline.utils import ( 
+    class_importer, 
+    get_circuit_metrics,
+    analyze_distribution,
+    compute_approximation_ratio
+)
 
 logger = logging.getLogger("pipeline_logger")
 
@@ -85,7 +90,7 @@ def single_run(parameter_dict: dict) -> dict:
         num_estimator_shots,
         backend,
         tqc,
-        qc.hamiltonian,
+        qaoa.hamiltonian,
         use_cache,
         cache_filename,
         cache_save_every
@@ -99,7 +104,7 @@ def single_run(parameter_dict: dict) -> dict:
     logger.info(f"Betas: {betas}")
 
     tic = time.perf_counter()
-    final_qc = qc.get_bound_circuit(gammas, betas)
+    final_qc = qaoa.get_bound_circuit(gammas, betas)
     circuit_bounding_time = time.perf_counter() - tic
 
     logger.info(f"Sampling with {num_sampler_shots} shots")
@@ -107,23 +112,23 @@ def single_run(parameter_dict: dict) -> dict:
     final_distribution_bin = sample_circuit(final_qc, backend, SamplerV2, num_sampler_shots)
     circuit_sampling_time = time.perf_counter() - tic
 
-    quantum_best = find_most_promising_feasible_bitstring(final_distribution_bin, problem)
-
     classic_best = problem.get_best_solution()
 
+    quantum_best, most_frequent, avg_energy, success_probability = analyze_distribution(
+        final_distribution_bin,
+        problem,
+        optimal_cost=classic_best[1]
+    )
+
+    approx_ratio = compute_approximation_ratio(avg_energy, classic_best[1])
+
     logger.info(f"Classic optimal solution: {classic_best}")
-    if quantum_best:
-        logger.info(f"Quantum best solution: {quantum_best} with frequency {final_distribution_bin[quantum_best[0]]}")
+    if quantum_best[0]:
+        logger.info(f"Quantum best solution: ('{quantum_best[0]}', {quantum_best[1]}) with frequency {quantum_best[2]}")
     else:
         logger.info(f"QAOA has failed, no feasible solution has been sampled")
 
-    most_frequent = list(final_distribution_bin.items())[0]
-
-    most_frequent_bitstring = most_frequent[0]
-    most_frequent_objective = problem.evaluate_cost(most_frequent_bitstring)
-    most_frequent_frequency = most_frequent[1]
-
-    logger.info(f"Most frequent bitstring is: ('{most_frequent_bitstring}', {most_frequent_objective}) with frequency {most_frequent_frequency}")
+    logger.info(f"Most frequent solution: ('{most_frequent[0]}', {most_frequent[1]}) with frequency {most_frequent[2]}")
 
     logger.info(f"Classic walltime: {problem.wall_time} [{problem.status}]")
     logger.info(f"{circuit_creation_time = }")
@@ -168,12 +173,15 @@ def single_run(parameter_dict: dict) -> dict:
         "best_classic_objective": classic_best[1],
         "best_classic_status": problem.status,
         "best_classic_walltime": problem.wall_time,
-        "best_quantum_bitstring": quantum_best[0] if quantum_best else None,
-        "best_quantum_objective": quantum_best[1] if quantum_best else None,
-        "best_quantum_frequency": final_distribution_bin[quantum_best[0]] if quantum_best else None,
-        "most_frequent_bitstring": most_frequent_bitstring,
-        "most_frequent_objective": most_frequent_objective,
-        "most_frequent_frequency": most_frequent_frequency,
+        "best_quantum_bitstring": quantum_best[0],
+        "best_quantum_objective": quantum_best[1] if quantum_best[0] else None,
+        "best_quantum_frequency": quantum_best[2],
+        "most_frequent_bitstring": most_frequent[0],
+        "most_frequent_objective": most_frequent[1],
+        "most_frequent_frequency": most_frequent[2],
+        "average_energy": avg_energy,
+        "approximation_ratio": approx_ratio,
+        "effective_success_probability": success_probability,
         "circuit_creation_time": circuit_creation_time,
         "circuit_transpilation_time": circuit_transpilation_time,
         "circuit_optimization_time": circuit_optimization_time,

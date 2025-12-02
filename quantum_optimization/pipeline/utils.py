@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import Optional, Tuple, Type
 import yaml
+import math
 
 from pipeline.problems.abstract_problem import AbstractProblem
 from qiskit import QuantumCircuit
@@ -158,5 +159,68 @@ def get_circuit_metrics(qc: QuantumCircuit) -> dict:
         "total_gates": total_gates,
         "num_active_qubits": num_active_qubits
     }
+
+
+def compute_approximation_ratio(energy_found: float, energy_optimal: float) -> float:
+
+    if abs(energy_optimal) < 1e-9:
+        return 1.0 if abs(energy_found) < 1e-9 else 0.0
+        
+    return energy_found / energy_optimal
+
+
+def compute_hellinger_distance(p: dict, q: dict) -> float:
+
+    all_keys = set(p.keys()) | set(q.keys())
+    
+    sum_sq_diff = 0.0
+    for key in all_keys:
+        p_val = p.get(key, 0.0)
+        q_val = q.get(key, 0.0)
+        sum_sq_diff += (math.sqrt(p_val) - math.sqrt(q_val)) ** 2
+        
+    return (1.0 / math.sqrt(2.0)) * math.sqrt(sum_sq_diff)
+
+
+def analyze_distribution(
+    distribution: dict, 
+    problem: AbstractProblem, 
+    optimal_cost: Optional[float] = None
+) -> dict:
+
+    avg_energy = 0.0
+    success_probability = 0.0
+    best_feasible_bitstring = None
+    best_feasible_cost = float('inf')
+    best_feasible_frequency = None
+    
+    tol = 1e-5
+
+    for bitstring, probability in distribution.items():
+
+        cost = problem.evaluate_cost(bitstring)
+        avg_energy += cost * probability
+
+        is_feasible, _ = problem.is_feasible(bitstring)     
+        if is_feasible:
+            if cost < best_feasible_cost:
+                best_feasible_cost = cost
+                best_feasible_bitstring = bitstring
+            
+            if optimal_cost is not None and abs(cost - optimal_cost) < tol:
+                success_probability += probability
+    
+    best_feasible_frequency = distribution[best_feasible_bitstring] if best_feasible_bitstring else None
+    
+    most_frequent = list(distribution.items())[0]
+    most_frequent_bitstring = most_frequent[0]
+    most_frequent_cost = problem.evaluate_cost(most_frequent_bitstring)
+    most_frequent_frequency = most_frequent[1]
+
+    best_feasible = (best_feasible_bitstring, best_feasible_cost, best_feasible_frequency)
+    most_frequent = (most_frequent_bitstring, most_frequent_cost, most_frequent_frequency)
+
+    return best_feasible, most_frequent, avg_energy, success_probability
+
 
 
