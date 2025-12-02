@@ -9,7 +9,7 @@ from pipeline.backends import get_aer_from_backend, get_real_backend
 from pipeline.plotter import Plotter
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.runtime import parameter_optimization, sample_circuit
-from pipeline.utils import find_most_promising_feasible_bitstring, class_importer
+from pipeline.utils import find_most_promising_feasible_bitstring, class_importer, get_circuit_metrics
 
 logger = logging.getLogger("pipeline_logger")
 
@@ -43,7 +43,7 @@ def single_run(parameter_dict: dict) -> dict:
 
     backend = get_aer_from_backend(seed)
     if backend_name:
-        logger.info(f"Building backend {backend_name}")
+        logger.info(f"Building backend {backend_name} {'(AerSimulator)' if is_backend_fake else '(real qpu)'}")
         backend = get_real_backend(backend_name)
         if is_backend_fake:
             backend = get_aer_from_backend(seed, backend)
@@ -61,21 +61,18 @@ def single_run(parameter_dict: dict) -> dict:
 
     logger.info(f"Building QAOA circuit {circuit_class} with {num_layers} layers")
     tic = time.perf_counter()
-    qaoa.get_parameterized_circuit()
+    qc = qaoa.get_parameterized_circuit()
     circuit_creation_time = time.perf_counter() - tic
+
+    qc_metrics = get_circuit_metrics(qc)
 
     logger.info(f"Transpiling QAOA circuit {circuit_class} for {backend_name}")
     tic = time.perf_counter()
     tqc = qaoa.transpile()
     circuit_transpilation_time = time.perf_counter() - tic
 
-    used_qubits = set()
-    for instr, qargs, _ in tqc.data:
-        for qubit in qargs:
-            used_qubits.add(qubit)
-
-    physical_qubits = len(used_qubits)
-    logger.info(f"The problem has {physical_qubits} physical qubits")
+    tqc_metrics = get_circuit_metrics(tqc)
+    logger.info(f"The problem has {tqc_metrics['num_active_qubits']} physical qubits")
 
     logger.info(f"Optimizing gammas and betas with {num_starting_points} starting points within {lower_bound} and {upper_bound}")
     tic = time.perf_counter()
@@ -88,7 +85,7 @@ def single_run(parameter_dict: dict) -> dict:
         num_estimator_shots,
         backend,
         tqc,
-        qaoa.hamiltonian,
+        qc.hamiltonian,
         use_cache,
         cache_filename,
         cache_save_every
@@ -102,7 +99,7 @@ def single_run(parameter_dict: dict) -> dict:
     logger.info(f"Betas: {betas}")
 
     tic = time.perf_counter()
-    final_qc = qaoa.get_bound_circuit(gammas, betas)
+    final_qc = qc.get_bound_circuit(gammas, betas)
     circuit_bounding_time = time.perf_counter() - tic
 
     logger.info(f"Sampling with {num_sampler_shots} shots")
@@ -150,9 +147,19 @@ def single_run(parameter_dict: dict) -> dict:
         "circuit_class": circuit_class,
         "backend": backend_name,
         "logic_qubits": problem.hamiltonian.num_qubits,
-        "physical_qubits": physical_qubits,
+        "virtual_qubits": qc_metrics['num_active_qubits'],
+        "physical_qubits": tqc_metrics['num_active_qubits'],
         "layers": num_layers,
-        "transpiled_circuit_depth": tqc.depth(),
+        "virtual_depth": qc.depth(),
+        "transpiled_depth": tqc.depth(),
+        "virtual_2q_gates": qc_metrics['2q_gates'],
+        "transpiled_2q_gates": tqc_metrics['2q_gates'],
+        "virtual_clifford_gates": qc_metrics['clifford_gates'],
+        "transpiled_clifford_gates": tqc_metrics['clifford_gates'],
+        "virtual_non_clifford_gates": qc_metrics['non_clifford_gates'],
+        "transpiled_non_clifford_gates": tqc_metrics['non_clifford_gates'],
+        "virtual_total_gates": qc_metrics['total_gates'],
+        "transpiled_total_gates": qc_metrics['total_gates'],
         "starting_points": num_starting_points,
         "optimal_parameters": list(optimal_params),
         "optimal_energy": float(optimal_energy),

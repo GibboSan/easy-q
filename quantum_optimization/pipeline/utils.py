@@ -6,6 +6,7 @@ from typing import Optional, Tuple, Type
 import yaml
 
 from pipeline.problems.abstract_problem import AbstractProblem
+from qiskit import QuantumCircuit
 
 
 class OptimizationCache:
@@ -132,5 +133,30 @@ def class_importer(module_name: str, class_name: str, compute_classfile_name=Tru
     except Exception as e:
         print(f"Generic error: {e}")
         sys.exit(1)
+
+
+def get_circuit_metrics(qc: QuantumCircuit) -> dict:
+
+    ops = qc.count_ops() 
+    clifford_gates = {'id', 'x', 'y', 'z', 'h', 's', 'sdg', 'cx', 'cz', 'swap'}
+    
+    depth = qc.depth()
+    num_2q = qc.num_nonlocal_gates()
+    
+    ignored_ops = {'barrier', 'measure', 'reset', 'snapshot'}
+    total_gates = sum(count for op, count in ops.items() if op not in ignored_ops)   
+    clifford_count = sum(ops.get(gate, 0) for gate in clifford_gates)
+    non_clifford_count = total_gates - clifford_count
+
+    num_active_qubits = len({q for instr in qc.data for q in instr.qubits})
+
+    return {
+        "depth": depth,
+        "2q_gates": num_2q,
+        "clifford_gates": clifford_count,
+        "non_clifford_gates": non_clifford_count,
+        "total_gates": total_gates,
+        "num_active_qubits": num_active_qubits
+    }
 
 
