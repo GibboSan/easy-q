@@ -164,7 +164,7 @@ def single_run(parameter_dict: dict) -> dict:
         "virtual_non_clifford_gates": qc_metrics['non_clifford_gates'],
         "transpiled_non_clifford_gates": tqc_metrics['non_clifford_gates'],
         "virtual_total_gates": qc_metrics['total_gates'],
-        "transpiled_total_gates": qc_metrics['total_gates'],
+        "transpiled_total_gates": tqc_metrics['total_gates'],
         "starting_points": num_starting_points,
         "optimal_parameters": list(optimal_params),
         "optimal_energy": float(optimal_energy),
