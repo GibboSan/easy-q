@@ -1,7 +1,7 @@
 matplotlib
 networkx
 numpy
-pyDOE
+pyDOE2
 pylatexenc
 PyYAML
 qiskit>=1.4.1,<2.0.0
