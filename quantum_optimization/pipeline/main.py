@@ -167,7 +167,7 @@ def single_run(parameter_dict: dict) -> dict:
         "transpiled_total_gates": tqc_metrics['total_gates'],
         "starting_points": num_starting_points,
         "optimal_parameters": list(optimal_params),
-        "optimal_energy": float(optimal_energy),
+        "optimal_estimator_energy": float(optimal_energy),
         "optimization_nfev": int(optimal_nfev),
         "best_classic_bistring": classic_best[0],
         "best_classic_objective": classic_best[1],
