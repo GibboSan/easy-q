@@ -138,24 +138,77 @@ def class_importer(module_name: str, class_name: str, compute_classfile_name=Tru
 
 def get_circuit_metrics(qc: QuantumCircuit) -> dict:
 
-    ops = qc.count_ops() 
-    clifford_gates = {'id', 'x', 'y', 'z', 'h', 's', 'sdg', 'cx', 'cz', 'swap'}
+    clifford_gates_names = {
+        'id', 'x', 'y', 'z', 'h', 's', 'sdg', 'cx', 'cz', 'swap', 'sx', 'ecr', 'iswap'}
+    
+    ignored_ops = {'barrier', 'measure', 'reset', 'snapshot', 'delay', 'initialize'}
     
     depth = qc.depth()
     num_2q = qc.num_nonlocal_gates()
     
-    ignored_ops = {'barrier', 'measure', 'reset', 'snapshot'}
-    total_gates = sum(count for op, count in ops.items() if op not in ignored_ops)   
-    clifford_count = sum(ops.get(gate, 0) for gate in clifford_gates)
-    non_clifford_count = total_gates - clifford_count
+    clifford_count = 0
+    non_clifford_count = 0
+    t_count = 0 
+    
+    total_gates = 0
+    
+    pi_half = math.pi / 2
+    pi_quarter = math.pi / 4 
+
+    for instr in qc.data:
+        op = instr.operation
+        name = op.name
+        
+        if name in ignored_ops:
+            continue
+            
+        total_gates += 1
+        
+        if name in clifford_gates_names:
+            clifford_count += 1
+            continue
+            
+        is_clifford = False
+        
+        if name in {'rz', 'p', 'rx', 'ry'}:
+            if len(op.params) > 0 and isinstance(op.params[0], (int, float)):
+                try:
+                    angle = float(op.params[0])
+                    is_t = math.isclose(angle, pi_quarter, abs_tol=1e-9)
+                    is_tdg = math.isclose(angle, -pi_quarter, abs_tol=1e-9)
+
+                    if is_t or is_tdg:
+                        t_count += 1
+                        non_clifford_count += 1
+                        continue 
+
+                    steps = angle / pi_half
+                    if math.isclose(steps, round(steps), abs_tol=1e-9):
+                        clifford_count += 1
+                        is_clifford = True
+                        
+                except Exception:
+                    pass
+        
+        elif name == 't' or name == 'tdg':
+             t_count += 1
+             non_clifford_count += 1
+             continue
+             
+        elif name in {'u', 'u1', 'u2', 'u3', 'rxx', 'rzz', 'ryy'}:
+            pass
+
+        if not is_clifford:
+            non_clifford_count += 1
 
     num_active_qubits = len({q for instr in qc.data for q in instr.qubits})
-
+    
     return {
         "depth": depth,
         "2q_gates": num_2q,
         "clifford_gates": clifford_count,
         "non_clifford_gates": non_clifford_count,
+        "t_gates": t_count,
         "total_gates": total_gates,
         "num_active_qubits": num_active_qubits
     }
@@ -180,6 +233,34 @@ def compute_hellinger_distance(p: dict, q: dict) -> float:
         sum_sq_diff += (math.sqrt(p_val) - math.sqrt(q_val)) ** 2
         
     return (1.0 / math.sqrt(2.0)) * math.sqrt(sum_sq_diff)
+
+
+def compute_js_divergence(p: dict, q: dict) -> float:
+    """
+    Computes the Jensen-Shannon Divergence between two probability distributions.
+    JSD(P || Q) = 0.5 * KL(P || M) + 0.5 * KL(Q || M)
+    where M = 0.5 * (P + Q)
+    
+    Uses log base 2, so the result is bounded between 0 and 1.
+    """
+    all_keys = set(p.keys()) | set(q.keys())
+    
+    m = {}
+    for key in all_keys:
+        p_val = p.get(key, 0.0)
+        q_val = q.get(key, 0.0)
+        m[key] = 0.5 * (p_val + q_val)
+        
+    def kl_divergence(dist_a, dist_b):
+        kl = 0.0
+        for key, val_a in dist_a.items():
+            if val_a > 0:
+                val_b = dist_b.get(key, 0.0)
+                if val_b > 0:
+                    kl += val_a * math.log2(val_a / val_b)
+        return kl
+
+    return 0.5 * kl_divergence(p, m) + 0.5 * kl_divergence(q, m)
 
 
 def analyze_distribution(
