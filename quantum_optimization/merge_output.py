@@ -33,11 +33,17 @@ def collect_output_jsons(exp_path):
                     else:
                         row[k] = v
 
-                if column_order is None:
-                    column_order = list(row.keys())
                 all_rows.append(row)
 
-    return all_rows, column_order
+    # Normalize nested dicts to flatten them
+    if all_rows:
+        df = pd.json_normalize(all_rows)
+        # Move 'label' to first column
+        cols = ['label'] + [col for col in df.columns if col != 'label']
+        df = df[cols]
+        return df.to_dict('records'), list(df.columns)
+    else:
+        return [], None
 
 def main():
     parser = argparse.ArgumentParser()
