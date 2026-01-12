@@ -7,6 +7,11 @@ quantum_optimization/experiments_automation/exp_*/
 # Ignore delme folders
 delme*/
 
+# UV project files
+uv.lock
+pyproject.toml
+.python-version
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
