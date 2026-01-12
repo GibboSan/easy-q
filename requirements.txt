@@ -1,6 +1,6 @@
 matplotlib
 networkx
-numpy
+numpy<2.4.0
 pyDOE2
 pylatexenc
 PyYAML
