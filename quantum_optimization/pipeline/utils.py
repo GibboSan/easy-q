@@ -143,6 +143,7 @@ def get_circuit_metrics(qc: QuantumCircuit) -> dict:
     
     ignored_ops = {'barrier', 'measure', 'reset', 'snapshot', 'delay', 'initialize'}
     
+    qc = qc.decompose(reps=10)
     depth = qc.depth()
     num_2q = qc.num_nonlocal_gates()
     

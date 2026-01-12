@@ -98,17 +98,17 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     qc_metrics = get_circuit_metrics(qc)
 
-    rng = np.random.default_rng(seed)
-    dummy_params = rng.choice([0, np.pi / 2, np.pi, 3 * np.pi / 2], size=qc.num_parameters)
-    assigned_qc = qc.assign_parameters(dummy_params)
-    
     logger.info(f"Transpiling QAOA circuit {circuit_class} for {backend_name}")
     tic = time.perf_counter()
-    assigned_tqc = transpile_circuit(assigned_qc, backend, seed)
+    tqc = transpile_circuit(qc, backend, seed)
     transpilation_time = time.perf_counter() - tic
-    assigned_tqc_metrics = get_circuit_metrics(assigned_tqc)
+    tqc_metrics = get_circuit_metrics(tqc)
 
-    isa_hamiltonian = qaoa.hamiltonian.apply_layout(assigned_tqc.layout)
+    rng = np.random.default_rng(seed)
+    dummy_params = rng.choice([0, np.pi / 2, np.pi, 3 * np.pi / 2], size=tqc.num_parameters)
+    assigned_tqc = tqc.assign_parameters(dummy_params)
+
+    isa_hamiltonian = qaoa.hamiltonian.apply_layout(tqc.layout)
     pub = [(assigned_tqc, isa_hamiltonian)]
 
     pruned_noise_model =  build_pruned_noise_model(backend, assigned_tqc)
@@ -138,8 +138,11 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     neat = Neat(backend=backend)
     tic = time.perf_counter()
     clifford_pub = neat.to_clifford(pub)
+    optimized_clifford_tqc = transpile_circuit(clifford_pub[0].circuit, backend, seed)
+    clifford_pub = [(optimized_clifford_tqc, clifford_pub[0].observables)]
+    clifford_pub = neat.to_clifford(clifford_pub)
     clifford_transpilation_time = time.perf_counter() - tic
-    clifford_tqc_metrics = get_circuit_metrics(clifford_pub[0].circuit)
+    clifford_tqc_metrics = get_circuit_metrics(optimized_clifford_tqc)
 
     logger.info(f"Ideal simulation run on Clifford circuit")
     tic = time.perf_counter()
@@ -189,7 +192,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     # stabilizer_pruned_estimation_time = time.perf_counter() - tic
 
     logger.info(f"Virtual QC Metrics:    {qc_metrics}")
-    logger.info(f"Transpiled QC Metrics: {assigned_tqc_metrics}")
+    logger.info(f"Transpiled QC Metrics: {tqc_metrics}")
     logger.info(f"Clifford QC Metrics:   {clifford_tqc_metrics}")
 
     if not only_clifford:
@@ -223,7 +226,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
         "logic_qubits": problem.hamiltonian.num_qubits,
         "backend_qubits": backend.num_qubits,
         "virtual_qc_metrics": qc_metrics,
-        "transpiled_qc_metrics": assigned_tqc_metrics,
+        "transpiled_qc_metrics": tqc_metrics,
         "clifford_qc_metrics": clifford_tqc_metrics,
         "layers": num_layers,
         "num_estimator_shots": num_estimator_shots,
