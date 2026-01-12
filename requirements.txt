@@ -4,7 +4,7 @@ numpy<2.4.0
 pyDOE2
 pylatexenc
 PyYAML
-qiskit>=1.4.1,<2.0.0
+qiskit
 qiskit-aer
 qiskit-algorithms
 qiskit-ibm-runtime
