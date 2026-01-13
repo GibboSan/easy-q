@@ -83,7 +83,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     ProblemClass = class_importer("pipeline.problems", problem_class)
     CircuitClass = class_importer("pipeline.qaoa_circuits", circuit_class)
 
-    logger.info(f"Building problem {problem_class}")
+    logger.info(f"Building {problem_class}")
     problem: AbstractProblem = ProblemClass(seed, problem_params)
 
     num_qubits = problem.hamiltonian.num_qubits
@@ -98,7 +98,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     qc_metrics = get_circuit_metrics(qc)
 
-    logger.info(f"Transpiling QAOA circuit {circuit_class} for {backend_name}")
+    logger.info(f"Transpiling {circuit_class} for {backend_name}")
     tic = time.perf_counter()
     tqc = transpile_circuit(qc, backend, seed)
     transpilation_time = time.perf_counter() - tic
