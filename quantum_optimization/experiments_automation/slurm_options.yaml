@@ -1,4 +1,7 @@
-mem: 124G
+mail-type: FAIL
+mail-user: gabriele.sanguin.2@studenti.unipd.it
+mem: 32G
 cpus-per-task: 32
-time: 48:00:00
-partition: debug
+time: 01:00:00
+partition: allgroups
+account: phd
