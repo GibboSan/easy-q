@@ -1,13 +1,18 @@
 seed: 12345
 output_folder: "./delme_torino"
-backend_name: "ibm_torino"
+backend_name: "ibm_torino"            # [null, "<backend_name>"]  
 is_backend_fake: True
-problem_class: "QGSProblem"
+problem_class: "MaxCutProblem"
 problem_params:
-  num_groups: 3
-  num_instruments_per_group: 3
-circuit_class: "AncillaQAOACircuit"
-num_layers: 3
+  n_nodes: 7                          # MaxCutProblem
+  density: 0.7                        # MaxCutProblem
+  num_groups: 3                       # QGSProblem
+  num_instruments_per_group: 3        # QGSProblem
+circuit_class: "QAOACircuit"
+num_layers: 1
+num_estimator_shots: 10000
+
+# optimization parameters
 num_starting_points: 1
 lower_bound: 0.0
 upper_bound: 3.15
@@ -20,5 +25,7 @@ optimization_params:
 use_cache: False
 cache_filename: "delme/cache.yaml"
 cache_save_every: 1
-num_estimator_shots: 10000
 num_sampler_shots: 100000
+
+# performance parameters
+only_clifford: True

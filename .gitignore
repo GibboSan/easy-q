@@ -1,21 +1,23 @@
-# Ignore local Python virtual environment
-/easy-q_env/
+# Python-generated files
+__pycache__/
+*.py[oc]
+*.py[cod]
+*$py.class
+build/
+dist/
+wheels/
+*.egg-info
 
-# Ignore experiment output folders
-quantum_optimization/experiments_automation/exp_*/
+# Virtual environments
+.venv
 
-# Ignore delme folders
+# Delme folders
 delme*/
 
 # UV project files
 uv.lock
 pyproject.toml
 .python-version
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
