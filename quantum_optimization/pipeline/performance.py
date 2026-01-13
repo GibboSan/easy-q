@@ -91,7 +91,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     qaoa = CircuitClass(seed, problem, num_qubits, num_layers, backend)
 
-    logger.info(f"Building QAOA circuit {circuit_class} with {num_layers} layers")
+    logger.info(f"Building {circuit_class} with {num_layers} layers")
     tic = time.perf_counter()
     qc = qaoa.get_parameterized_circuit()
     circuit_creation_time = time.perf_counter() - tic
@@ -108,9 +108,11 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     dummy_params = rng.choice([0, np.pi / 2, np.pi, 3 * np.pi / 2], size=tqc.num_parameters)
     assigned_tqc = tqc.assign_parameters(dummy_params)
 
+    logger.info("Preparing Hamiltonian for Estimator")
     isa_hamiltonian = qaoa.hamiltonian.apply_layout(tqc.layout)
     pub = [(assigned_tqc, isa_hamiltonian)]
 
+    logger.info("Building pruned noise model")
     pruned_noise_model =  build_pruned_noise_model(backend, assigned_tqc)
 
 
