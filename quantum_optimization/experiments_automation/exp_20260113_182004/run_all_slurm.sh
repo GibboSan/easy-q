@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+mkdir -p logs
+
+sbatch --job-name=N_nodes6_N_layers1 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes6_N_layers1_%j.out --wrap="mkdir -p N_nodes6_N_layers1_out && python3 ../../run_performance.py N_nodes6_N_layers1/N_nodes6_N_layers1.yaml > N_nodes6_N_layers1_out/output.log"
+sbatch --job-name=N_nodes6_N_layers2 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes6_N_layers2_%j.out --wrap="mkdir -p N_nodes6_N_layers2_out && python3 ../../run_performance.py N_nodes6_N_layers2/N_nodes6_N_layers2.yaml > N_nodes6_N_layers2_out/output.log"
+sbatch --job-name=N_nodes9_N_layers1 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes9_N_layers1_%j.out --wrap="mkdir -p N_nodes9_N_layers1_out && python3 ../../run_performance.py N_nodes9_N_layers1/N_nodes9_N_layers1.yaml > N_nodes9_N_layers1_out/output.log"
+sbatch --job-name=N_nodes9_N_layers2 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes9_N_layers2_%j.out --wrap="mkdir -p N_nodes9_N_layers2_out && python3 ../../run_performance.py N_nodes9_N_layers2/N_nodes9_N_layers2.yaml > N_nodes9_N_layers2_out/output.log"
+sbatch --job-name=N_nodes12_N_layers1 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes12_N_layers1_%j.out --wrap="mkdir -p N_nodes12_N_layers1_out && python3 ../../run_performance.py N_nodes12_N_layers1/N_nodes12_N_layers1.yaml > N_nodes12_N_layers1_out/output.log"
+sbatch --job-name=N_nodes12_N_layers2 --mem=32G --cpus-per-task=32 --time=01:00:00 --mail-type=FAIL --mail-user=gabriele.sanguin.2@studenti.unipd.it --partition=allgroups --account=phd --output=logs/N_nodes12_N_layers2_%j.out --wrap="mkdir -p N_nodes12_N_layers2_out && python3 ../../run_performance.py N_nodes12_N_layers2/N_nodes12_N_layers2.yaml > N_nodes12_N_layers2_out/output.log"
