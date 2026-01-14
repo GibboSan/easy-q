@@ -1,0 +1,43 @@
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit_ibm_runtime/accounts/account.py", line 324, in list_instances
+    result = client.search(
+             ^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/ibm_platform_services/global_search_v2.py", line 236, in search
+    response = self.send(request, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/ibm_cloud_sdk_core/base_service.py", line 362, in send
+    raise ApiException(response.status_code, http_response=response)
+ibm_cloud_sdk_core.api_exception.ApiException: Error: <HTML><HEAD>
+<TITLE>Service Unavailable</TITLE>
+</HEAD><BODY>
+<H1>Service Unavailable - DNS failure</H1>
+The server is temporarily unable to service your request.  Please try again
+later.<P>
+Reference&#32;&#35;11&#46;f084655f&#46;1768338870&#46;4e857c74
+<P>https&#58;&#47;&#47;errors&#46;edgesuite&#46;net&#47;11&#46;f084655f&#46;1768338870&#46;4e857c74</P>
+</BODY></HTML>
+, Status code: 503
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260113_181118/../../run_performance.py", line 66, in <module>
+    main()
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260113_181118/../../run_performance.py", line 58, in main
+    output_dict = estimator_performance_run(parameter_dict)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 79, in estimator_performance_run
+    backend = get_real_backend(backend_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/backends.py", line 32, in get_real_backend
+    service = QiskitRuntimeService(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit_ibm_runtime/qiskit_runtime_service.py", line 241, in __init__
+    if self._account.instance not in [inst["crn"] for inst in self.instances()]:
+                                                              ^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit_ibm_runtime/qiskit_runtime_service.py", line 1327, in instances
+    self._all_instances = self._account.list_instances()
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit_ibm_runtime/accounts/account.py", line 337, in list_instances
+    raise InvalidAccountError(
+qiskit_ibm_runtime.accounts.exceptions.InvalidAccountError: 'Unable to retrieve instances. Please check that you are using a valid API token.'
