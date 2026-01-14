@@ -1,0 +1,8 @@
+[2026-01-14 06:24:43,212] INFO: reading parameters file: 'N_nodes63_N_layers1/N_nodes63_N_layers1.yaml'
+[2026-01-14 06:24:43,219] INFO: Using seed 12345
+[2026-01-14 06:24:43,220] INFO: Output will be written in N_nodes63_N_layers1_out
+[2026-01-14 06:24:43,220] INFO: Building backend ibm_torino (AerSimulator)
+[2026-01-14 06:24:57,747] INFO: Building MaxCutProblem
+[2026-01-14 06:29:59,448] INFO: The problem has 63 logic qubits
+[2026-01-14 06:29:59,449] INFO: Building QAOACircuit with 1 layers
+[2026-01-14 06:30:01,686] INFO: Transpiling QAOACircuit for ibm_torino

@@ -1,0 +1,26 @@
+[2026-01-13 18:43:50,452] INFO: reading parameters file: 'N_nodes12_N_layers5/N_nodes12_N_layers5.yaml'
+[2026-01-13 18:43:50,460] INFO: Using seed 12345
+[2026-01-13 18:43:50,460] INFO: Output will be written in N_nodes12_N_layers5_out
+[2026-01-13 18:43:50,461] INFO: Building backend ibm_torino (AerSimulator)
+[2026-01-13 18:44:02,837] INFO: Building problem MaxCutProblem
+[2026-01-13 18:44:02,923] INFO: The problem has 12 logic qubits
+[2026-01-13 18:44:02,923] INFO: Building QAOA circuit QAOACircuit with 5 layers
+[2026-01-13 18:44:03,365] INFO: Transpiling QAOA circuit QAOACircuit for ibm_torino
+[2026-01-13 18:44:29,592] INFO: Clifford Noise Analysis with NEAT
+[2026-01-13 18:44:34,420] INFO: Ideal simulation run on Clifford circuit
+[2026-01-13 18:44:34,669] INFO: Noisy simulation run on Clifford circuit
+[2026-01-13 18:44:47,973] INFO: Pruned noise simulation run on Clifford circuit
+[2026-01-13 18:44:50,067] INFO: Virtual QC Metrics:    {'depth': 202, '2q_gates': 430, 'clifford_gates': 430, 'non_clifford_gates': 287, 't_gates': 0, 'total_gates': 717, 'num_active_qubits': 12}
+[2026-01-13 18:44:50,067] INFO: Transpiled QC Metrics: {'depth': 3715, '2q_gates': 1164, 'clifford_gates': 1164, 'non_clifford_gates': 10311, 't_gates': 0, 'total_gates': 11475, 'num_active_qubits': 12}
+[2026-01-13 18:44:50,067] INFO: Clifford QC Metrics:   {'depth': 2627, '2q_gates': 863, 'clifford_gates': 863, 'non_clifford_gates': 7109, 't_gates': 0, 'total_gates': 7972, 'num_active_qubits': 12}
+[2026-01-13 18:44:50,067] INFO: Clifford Ideal Estimator Value:  -0.154296875
+[2026-01-13 18:44:50,067] INFO: Clifford Noisy Estimator Value:  0.2255859375
+[2026-01-13 18:44:50,067] INFO: Clifford Pruned Estimator Value: 0.2255859375
+[2026-01-13 18:44:50,068] INFO: Circuit creation time:       0.0136 seconds
+[2026-01-13 18:44:50,068] INFO: Transpilation time:          0.2290 seconds
+[2026-01-13 18:44:50,068] INFO: Clifford Transpilation time: 0.2707 seconds
+[2026-01-13 18:44:50,068] INFO: Clifford Ideal Estimation time:  0.2486 seconds
+[2026-01-13 18:44:50,068] INFO: Clifford Noisy Estimation time:  13.3041 seconds
+[2026-01-13 18:44:50,068] INFO: Clifford Pruned Estimation time: 2.0923 seconds
+[2026-01-13 18:44:50,068] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-01-13 18:44:50,089] INFO: writing output file: N_nodes12_N_layers5_out/output.json

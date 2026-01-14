@@ -1,0 +1,28 @@
+[2026-01-14 04:04:49,507] INFO: reading parameters file: 'N_nodes54_N_layers1/N_nodes54_N_layers1.yaml'
+[2026-01-14 04:04:49,515] INFO: Using seed 12345
+[2026-01-14 04:04:49,515] INFO: Output will be written in N_nodes54_N_layers1_out
+[2026-01-14 04:04:49,516] INFO: Building backend ibm_torino (AerSimulator)
+[2026-01-14 04:05:03,849] INFO: Building MaxCutProblem
+[2026-01-14 04:10:05,047] INFO: The problem has 54 logic qubits
+[2026-01-14 04:10:05,047] INFO: Building QAOACircuit with 1 layers
+[2026-01-14 04:10:06,616] INFO: Transpiling QAOACircuit for ibm_torino
+[2026-01-14 04:29:32,063] INFO: Preparing Hamiltonian for Estimator
+[2026-01-14 04:29:32,064] INFO: Building pruned noise model
+[2026-01-14 04:29:32,668] INFO: Clifford Noise Analysis with NEAT
+[2026-01-14 04:29:52,529] INFO: Ideal simulation run on Clifford circuit
+[2026-01-14 04:29:56,852] INFO: Noisy simulation run on Clifford circuit
+[2026-01-14 04:31:05,584] INFO: Pruned noise simulation run on Clifford circuit
+[2026-01-14 04:31:36,111] INFO: Virtual QC Metrics:    {'depth': 309, '2q_gates': 2014, 'clifford_gates': 2014, 'non_clifford_gates': 1115, 't_gates': 0, 'total_gates': 3129, 'num_active_qubits': 54}
+[2026-01-14 04:31:36,111] INFO: Transpiled QC Metrics: {'depth': 8981, '2q_gates': 6576, 'clifford_gates': 6576, 'non_clifford_gates': 57707, 't_gates': 0, 'total_gates': 64283, 'num_active_qubits': 54}
+[2026-01-14 04:31:36,111] INFO: Clifford QC Metrics:   {'depth': 4689, '2q_gates': 4380, 'clifford_gates': 4380, 'non_clifford_gates': 37903, 't_gates': 0, 'total_gates': 42283, 'num_active_qubits': 54}
+[2026-01-14 04:31:36,112] INFO: Clifford Ideal Estimator Value:  -0.568359375
+[2026-01-14 04:31:36,112] INFO: Clifford Noisy Estimator Value:  0.1220703125
+[2026-01-14 04:31:36,112] INFO: Clifford Pruned Estimator Value: 0.1220703125
+[2026-01-14 04:31:36,112] INFO: Circuit creation time:       0.0506 seconds
+[2026-01-14 04:31:36,112] INFO: Transpilation time:          0.9960 seconds
+[2026-01-14 04:31:36,112] INFO: Clifford Transpilation time: 1.2631 seconds
+[2026-01-14 04:31:36,112] INFO: Clifford Ideal Estimation time:  4.3227 seconds
+[2026-01-14 04:31:36,112] INFO: Clifford Noisy Estimation time:  68.7320 seconds
+[2026-01-14 04:31:36,113] INFO: Clifford Pruned Estimation time: 30.5254 seconds
+[2026-01-14 04:31:36,113] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-01-14 04:31:36,136] INFO: writing output file: N_nodes54_N_layers1_out/output.json
