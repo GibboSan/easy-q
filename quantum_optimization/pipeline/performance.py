@@ -96,14 +96,18 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     qc = qaoa.get_parameterized_circuit()
     circuit_creation_time = time.perf_counter() - tic
 
+    logger.info("Getting virtual circuit metrics")
     qc_metrics = get_circuit_metrics(qc)
 
     logger.info(f"Transpiling {circuit_class} for {backend_name}")
     tic = time.perf_counter()
-    tqc = transpile_circuit(qc, backend, seed)
+    tqc = transpile_circuit(qc, backend, seed, optimization_level=3)
     transpilation_time = time.perf_counter() - tic
+
+    logger.info("Getting transpiled circuit metrics")
     tqc_metrics = get_circuit_metrics(tqc)
 
+    logger.info("Assigning random parameters to the transpiled circuit")
     rng = np.random.default_rng(seed)
     dummy_params = rng.choice([0, np.pi / 2, np.pi, 3 * np.pi / 2], size=tqc.num_parameters)
     assigned_tqc = tqc.assign_parameters(dummy_params)
