@@ -1,4 +1,0 @@
-[2026-01-13 22:14:29,534] INFO: reading parameters file: 'N_nodes33_N_layers2/N_nodes33_N_layers2.yaml'
-[2026-01-13 22:14:29,542] INFO: Using seed 12345
-[2026-01-13 22:14:29,543] INFO: Output will be written in N_nodes33_N_layers2_out
-[2026-01-13 22:14:29,543] INFO: Building backend ibm_torino (AerSimulator)
