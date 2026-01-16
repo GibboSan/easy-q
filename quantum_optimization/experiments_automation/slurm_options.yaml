@@ -1,7 +1,7 @@
 mail-type: FAIL
 mail-user: gabriele.sanguin.2@studenti.unipd.it
-mem: 32G
-cpus-per-task: 32
-time: 01:00:00
+mem: 64G
+cpus-per-task: 8
+time: 00:45:00
 partition: allgroups
 account: phd

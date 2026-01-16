@@ -15,21 +15,21 @@
         "num_active_qubits": 9
     },
     "transpiled_qc_metrics": {
-        "depth": 932,
+        "depth": 929,
         "2q_gates": 231,
         "clifford_gates": 231,
-        "non_clifford_gates": 2075,
+        "non_clifford_gates": 2066,
         "t_gates": 0,
-        "total_gates": 2306,
+        "total_gates": 2297,
         "num_active_qubits": 9
     },
     "clifford_qc_metrics": {
-        "depth": 597,
+        "depth": 613,
         "2q_gates": 169,
         "clifford_gates": 169,
-        "non_clifford_gates": 1387,
+        "non_clifford_gates": 1365,
         "t_gates": 0,
-        "total_gates": 1556,
+        "total_gates": 1534,
         "num_active_qubits": 9
     },
     "layers": 2,
@@ -38,15 +38,15 @@
     "noisy_energy": null,
     "pruned_energy": null,
     "clifford_ideal_energy": -0.0732421875,
-    "clifford_noisy_energy": 0.146484375,
-    "clifford_pruned_energy": 0.146484375,
-    "circuit_creation_time": 0.00432698056101799,
-    "transpilation_time": 0.07152212783694267,
-    "transpilation_clifford_time": 0.05530465766787529,
+    "clifford_noisy_energy": 0.068359375,
+    "clifford_pruned_energy": 0.068359375,
+    "circuit_creation_time": 0.0012298059996282973,
+    "transpilation_time": 0.027672668999912275,
+    "transpilation_clifford_time": 0.019228708000355255,
     "ideal_estimation_time": null,
     "noisy_estimation_time": null,
     "pruned_estimation_time": null,
-    "clifford_ideal_estimation_time": 0.12775513529777527,
-    "clifford_noisy_estimation_time": 3.657550871372223,
-    "clifford_pruned_estimation_time": 0.4721103720366955
+    "clifford_ideal_estimation_time": 0.0788655170003949,
+    "clifford_noisy_estimation_time": 1.4814234589998705,
+    "clifford_pruned_estimation_time": 0.16371955900012836
 }

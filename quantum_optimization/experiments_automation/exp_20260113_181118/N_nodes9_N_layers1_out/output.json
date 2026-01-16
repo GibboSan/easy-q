@@ -15,12 +15,12 @@
         "num_active_qubits": 9
     },
     "transpiled_qc_metrics": {
-        "depth": 399,
+        "depth": 396,
         "2q_gates": 90,
         "clifford_gates": 90,
-        "non_clifford_gates": 788,
+        "non_clifford_gates": 794,
         "t_gates": 0,
-        "total_gates": 878,
+        "total_gates": 884,
         "num_active_qubits": 9
     },
     "clifford_qc_metrics": {
@@ -37,16 +37,16 @@
     "ideal_energy": null,
     "noisy_energy": null,
     "pruned_energy": null,
-    "clifford_ideal_energy": 4.96484375,
-    "clifford_noisy_energy": 5.0068359375,
-    "clifford_pruned_energy": 4.8525390625,
-    "circuit_creation_time": 0.0035109110176563263,
-    "transpilation_time": 0.06362727284431458,
-    "transpilation_clifford_time": 0.04948609694838524,
+    "clifford_ideal_energy": 12.5,
+    "clifford_noisy_energy": 12.5,
+    "clifford_pruned_energy": 12.5,
+    "circuit_creation_time": 0.000963323999712884,
+    "transpilation_time": 0.016556236000269564,
+    "transpilation_clifford_time": 0.018538908999744308,
     "ideal_estimation_time": null,
     "noisy_estimation_time": null,
     "pruned_estimation_time": null,
-    "clifford_ideal_estimation_time": 0.08525708317756653,
-    "clifford_noisy_estimation_time": 1.4624631740152836,
-    "clifford_pruned_estimation_time": 0.19055095314979553
+    "clifford_ideal_estimation_time": 0.07322927299992443,
+    "clifford_noisy_estimation_time": 0.7098372770001333,
+    "clifford_pruned_estimation_time": 0.10821375000023181
 }
