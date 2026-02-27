@@ -165,6 +165,10 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     clifford_transpilation_time = time.perf_counter() - tic
     clifford_tqc_metrics = get_circuit_metrics(optimized_clifford_tqc, speedup=True)
 
+    logger.info(f"Virtual QC Metrics:    {qc_metrics}")
+    logger.info(f"Transpiled QC Metrics: {tqc_metrics}")
+    logger.info(f"Clifford QC Metrics:   {clifford_tqc_metrics}")
+
     logger.info(f"Ideal simulation run on Clifford circuit")
     tic = time.perf_counter()
     clifford_ideal_value = float(neat.ideal_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
@@ -217,10 +221,6 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     # tic = time.perf_counter()
     # stabilizer_pruned_value = estimator_run(stabilizer_qc, isa_hamiltonian, pruned_stabilizer_backend, num_estimator_shots)
     # stabilizer_pruned_estimation_time = time.perf_counter() - tic
-
-    logger.info(f"Virtual QC Metrics:    {qc_metrics}")
-    logger.info(f"Transpiled QC Metrics: {tqc_metrics}")
-    logger.info(f"Clifford QC Metrics:   {clifford_tqc_metrics}")
 
     if not only_clifford:
         logger.info(f"Ideal Estimator Value:           {ideal_value}")
