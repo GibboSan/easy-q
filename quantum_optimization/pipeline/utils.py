@@ -136,7 +136,7 @@ def class_importer(module_name: str, class_name: str, compute_classfile_name=Tru
         sys.exit(1)
 
 
-def get_circuit_metrics(qc: QuantumCircuit) -> dict:
+def _get_circuit_metrics_exact(qc: QuantumCircuit) -> dict:
 
     clifford_gates_names = {
         'id', 'x', 'y', 'z', 'h', 's', 'sdg', 'cx', 'cz', 'swap', 'sx', 'ecr', 'iswap'}
@@ -213,6 +213,74 @@ def get_circuit_metrics(qc: QuantumCircuit) -> dict:
         "total_gates": total_gates,
         "num_active_qubits": num_active_qubits
     }
+
+
+def _get_circuit_metrics_speed(qc: QuantumCircuit) -> dict:
+
+    clifford_gates_names = {
+        'id', 'x', 'y', 'z', 'h', 's', 'sdg', 'cx', 'cz', 'swap', 'sx', 'ecr', 'iswap'}
+    ignored_ops = {'barrier', 'measure', 'reset', 'snapshot', 'delay', 'initialize'}
+
+    depth = qc.depth()
+    num_2q = qc.num_nonlocal_gates()
+    op_counts = qc.count_ops()
+
+    total_gates = sum(count for op_name, count in op_counts.items() if op_name not in ignored_ops)
+    clifford_count = sum(count for op_name, count in op_counts.items() if op_name in clifford_gates_names)
+    t_count = int(op_counts.get('t', 0) + op_counts.get('tdg', 0))
+
+    non_clifford_count = total_gates - clifford_count
+
+    pi_half = math.pi / 2
+    pi_quarter = math.pi / 4
+    rotation_ops = {'rz', 'p', 'rx', 'ry'}
+
+    for instr in qc.data:
+        op = instr.operation
+        name = op.name
+
+        if name not in rotation_ops:
+            continue
+
+        if len(op.params) == 0 or not isinstance(op.params[0], (int, float)):
+            continue
+
+        try:
+            angle = float(op.params[0])
+
+            is_t = math.isclose(angle, pi_quarter, abs_tol=1e-9)
+            is_tdg = math.isclose(angle, -pi_quarter, abs_tol=1e-9)
+
+            if is_t or is_tdg:
+                t_count += 1
+                continue
+
+            steps = angle / pi_half
+            if math.isclose(steps, round(steps), abs_tol=1e-9):
+                clifford_count += 1
+                non_clifford_count -= 1
+        except Exception:
+            continue
+
+    num_active_qubits = len({q for instr in qc.data for q in instr.qubits})
+
+    return {
+        "depth": depth,
+        "2q_gates": num_2q,
+        "clifford_gates": clifford_count,
+        "non_clifford_gates": non_clifford_count,
+        "t_gates": t_count,
+        "total_gates": total_gates,
+        "num_active_qubits": num_active_qubits
+    }
+
+
+def get_circuit_metrics(qc: QuantumCircuit, speedup: bool = False) -> dict:
+
+    if speedup:
+        return _get_circuit_metrics_speed(qc)
+
+    return _get_circuit_metrics_exact(qc)
 
 
 def compute_approximation_ratio(energy_found: float, energy_optimal: float) -> float:

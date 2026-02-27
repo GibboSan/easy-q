@@ -1,7 +1,7 @@
-problem_params.n_nodes:
-  values: [57,60]
-  label: "N_nodes"
+problem_params.num_groups:
+  values: [2, 3, 4, 5, 6, 7]
+  label: "N_groups"
 
 num_layers:
-  values: [1]
+  values: [3]
   label: "N_layers"
