@@ -65,7 +65,14 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     num_layers = parameter_dict['num_layers']
     num_estimator_shots = parameter_dict['num_estimator_shots']
     problem_params = parameter_dict['problem_params']
-    only_clifford = parameter_dict['only_clifford']
+    performance_params = parameter_dict.get('performance', {})
+    only_clifford = performance_params.get('only_clifford', parameter_dict.get('only_clifford', False))
+    pruned_noise = performance_params.get('pruned_noise', parameter_dict.get('pruned_noise', False))
+
+    if not isinstance(only_clifford, bool):
+        raise ValueError("'performance.only_clifford' must be a boolean.")
+    if not isinstance(pruned_noise, bool):
+        raise ValueError("'performance.pruned_noise' must be a boolean.")
 
     logger.info(f"Using seed {seed}")
     np.random.seed(seed)
@@ -97,7 +104,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     circuit_creation_time = time.perf_counter() - tic
 
     logger.info("Getting virtual circuit metrics")
-    qc_metrics = get_circuit_metrics(qc)
+    qc_metrics = get_circuit_metrics(qc, speedup=True)
 
     logger.info(f"Transpiling {circuit_class} for {backend_name}")
     tic = time.perf_counter()
@@ -105,7 +112,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     transpilation_time = time.perf_counter() - tic
 
     logger.info("Getting transpiled circuit metrics")
-    tqc_metrics = get_circuit_metrics(tqc)
+    tqc_metrics = get_circuit_metrics(tqc, speedup=True)
 
     logger.info("Assigning random parameters to the transpiled circuit")
     rng = np.random.default_rng(seed)
@@ -116,16 +123,18 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     isa_hamiltonian = qaoa.hamiltonian.apply_layout(tqc.layout)
     pub = [(assigned_tqc, isa_hamiltonian)]
 
-    logger.info("Building pruned noise model")
-    pruned_noise_model =  build_pruned_noise_model(backend, assigned_tqc)
+    pruned_noise_model = None
+    if pruned_noise:
+        logger.info("Building pruned noise model")
+        pruned_noise_model = build_pruned_noise_model(backend, assigned_tqc)
 
+
+    noisy_value = None
+    noisy_time = None
+    pruned_value = None
+    pruned_time = None
 
     if not only_clifford:
-
-        logger.info(f"Estimator run on {backend_name}")
-        tic = time.perf_counter()
-        noisy_value = estimator_run(pub, backend, num_estimator_shots)
-        noisy_time = time.perf_counter() - tic
 
         logger.info(f"Estimator run on {backend_name} without noise (ideal)")
         ideal_backend = get_aer_from_backend(seed, backend, noise_model=NoiseModel())
@@ -133,11 +142,17 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
         ideal_value = estimator_run(pub, ideal_backend)
         ideal_time = time.perf_counter() - tic
 
-        logger.info(f"Estimator run on {backend_name} with pruned noise")
-        pruned_backend = get_aer_from_backend(seed, backend, noise_model=pruned_noise_model)
-        tic = time.perf_counter()
-        pruned_value = estimator_run(pub, pruned_backend, num_estimator_shots)
-        pruned_time = time.perf_counter() - tic
+        if pruned_noise:
+            logger.info(f"Estimator run on {backend_name} with pruned noise")
+            pruned_backend = get_aer_from_backend(seed, backend, noise_model=pruned_noise_model)
+            tic = time.perf_counter()
+            pruned_value = estimator_run(pub, pruned_backend, num_estimator_shots)
+            pruned_time = time.perf_counter() - tic
+        else:
+            logger.info(f"Estimator run on {backend_name} with full noise")
+            tic = time.perf_counter()
+            noisy_value = estimator_run(pub, backend, num_estimator_shots)
+            noisy_time = time.perf_counter() - tic
 
 
     logger.info(f"Clifford Noise Analysis with NEAT")
@@ -148,7 +163,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     clifford_pub = [(optimized_clifford_tqc, clifford_pub[0].observables)]
     clifford_pub = neat.to_clifford(clifford_pub)
     clifford_transpilation_time = time.perf_counter() - tic
-    clifford_tqc_metrics = get_circuit_metrics(optimized_clifford_tqc)
+    clifford_tqc_metrics = get_circuit_metrics(optimized_clifford_tqc, speedup=True)
 
     logger.info(f"Ideal simulation run on Clifford circuit")
     tic = time.perf_counter()
@@ -156,15 +171,21 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     clifford_ideal_time = time.perf_counter() - tic
 
     logger.info(f"Noisy simulation run on Clifford circuit")
-    tic = time.perf_counter()
-    clifford_noisy_value = float(neat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
-    clifford_noisy_time = time.perf_counter() - tic
-
-    logger.info(f"Pruned noise simulation run on Clifford circuit")
-    pruned_neat = Neat(backend=backend, noise_model=pruned_noise_model)
-    tic = time.perf_counter()
-    clifford_pruned_value = float(pruned_neat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
-    clifford_pruned_time = time.perf_counter() - tic
+    clifford_noisy_value = None
+    clifford_noisy_time = None
+    clifford_pruned_value = None
+    clifford_pruned_time = None
+    if pruned_noise:
+        logger.info(f"Pruned noise simulation run on Clifford circuit")
+        pruned_neat = Neat(backend=backend, noise_model=pruned_noise_model)
+        tic = time.perf_counter()
+        clifford_pruned_value = float(pruned_neat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
+        clifford_pruned_time = time.perf_counter() - tic
+    else:
+        logger.info(f"Full noise simulation run on Clifford circuit")
+        tic = time.perf_counter()
+        clifford_noisy_value = float(neat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
+        clifford_noisy_time = time.perf_counter() - tic
 
 
     # # Stabilizer method on Clifford circuit (instead of Neat)
@@ -177,7 +198,7 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     # tic = time.perf_counter()
     # stabilizer_qc = transpile_circuit(clifford_qc, stabilizer_ideal_backend, seed)
     # stabilizer_transpilation_time = time.perf_counter() - tic
-    # stabilizer_tqc_metrics = get_circuit_metrics(stabilizer_qc)
+    # stabilizer_tqc_metrics = get_circuit_metrics(stabilizer_qc, speedup=True)
 
     # logger.info(f"Estimator run on {backend_name} with stabilizer ideal method on Clifford circuit")
     # tic = time.perf_counter()
@@ -203,11 +224,15 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     if not only_clifford:
         logger.info(f"Ideal Estimator Value:           {ideal_value}")
-        logger.info(f"Reference Estimator Value:       {noisy_value}")
-        logger.info(f"Pruned Noise Estimator Value:    {pruned_value}")
+        if pruned_noise:
+            logger.info(f"Pruned Noise Estimator Value:    {pruned_value}")
+        else:
+            logger.info(f"Full Noise Estimator Value:      {noisy_value}")
     logger.info(f"Clifford Ideal Estimator Value:  {clifford_ideal_value}")
-    logger.info(f"Clifford Noisy Estimator Value:  {clifford_noisy_value}")
-    logger.info(f"Clifford Pruned Estimator Value: {clifford_pruned_value}")
+    if pruned_noise:
+        logger.info(f"Clifford Pruned Estimator Value: {clifford_pruned_value}")
+    else:
+        logger.info(f"Clifford Noisy Estimator Value:  {clifford_noisy_value}")
 
     logger.info(f"Circuit creation time:       {circuit_creation_time:.4f} seconds")
     logger.info(f"Transpilation time:          {transpilation_time:.4f} seconds")
@@ -215,33 +240,55 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     if not only_clifford:
         logger.info(f"Ideal Estimation time:           {ideal_time:.4f} seconds")
-        logger.info(f"Noisy Estimation time:           {noisy_time:.4f} seconds")
-        logger.info(f"Pruned Noise Estimation time:    {pruned_time:.4f} seconds")
+        if pruned_noise:
+            logger.info(f"Pruned Noise Estimation time:    {pruned_time:.4f} seconds")
+        else:
+            logger.info(f"Full Noise Estimation time:      {noisy_time:.4f} seconds")
     logger.info(f"Clifford Ideal Estimation time:  {clifford_ideal_time:.4f} seconds")
-    logger.info(f"Clifford Noisy Estimation time:  {clifford_noisy_time:.4f} seconds")
-    logger.info(f"Clifford Pruned Estimation time: {clifford_pruned_time:.4f} seconds")
+    if pruned_noise:
+        logger.info(f"Clifford Pruned Estimation time: {clifford_pruned_time:.4f} seconds")
+    else:
+        logger.info(f"Clifford Noisy Estimation time:  {clifford_noisy_time:.4f} seconds")
 
     logger.info("ESTIMATOR PERFORMANCE RUN COMPLETED.")
+
+    estimator_mitigation_assessment = None
+    if not only_clifford:
+        estimator_reference_value = pruned_value if pruned_noise else noisy_value
+        if estimator_reference_value is not None:
+            estimator_mitigation_assessment = abs(ideal_value - estimator_reference_value) * 100
+
+    clifford_reference_value = clifford_pruned_value if pruned_noise else clifford_noisy_value
+    clifford_mitigation_assessment = None
+    if clifford_reference_value is not None:
+        clifford_mitigation_assessment = abs(clifford_ideal_value - clifford_reference_value) * 100
 
 
     return {
         "seed": seed,
         "problem_class": problem_class,
+        "problem_params": problem_params,
         "circuit_class": circuit_class,
+        "layers": num_layers,
         "backend": backend_name,
         "logic_qubits": problem.hamiltonian.num_qubits,
         "backend_qubits": backend.num_qubits,
         "virtual_qc_metrics": qc_metrics,
         "transpiled_qc_metrics": tqc_metrics,
         "clifford_qc_metrics": clifford_tqc_metrics,
-        "layers": num_layers,
+        "performance": {
+            "only_clifford": only_clifford,
+            "pruned_noise": pruned_noise
+        },
         "num_estimator_shots": num_estimator_shots,
         "ideal_energy": ideal_value if not only_clifford else None,
         "noisy_energy": noisy_value if not only_clifford else None,
         "pruned_energy": pruned_value if not only_clifford else None,
+        "estimator_mitigation_assessment": estimator_mitigation_assessment,
         "clifford_ideal_energy": clifford_ideal_value,
         "clifford_noisy_energy": clifford_noisy_value,
         "clifford_pruned_energy": clifford_pruned_value,
+        "clifford_mitigation_assessment": clifford_mitigation_assessment,
         "circuit_creation_time": circuit_creation_time,
         "transpilation_time": transpilation_time,
         "transpilation_clifford_time": clifford_transpilation_time,
