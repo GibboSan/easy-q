@@ -6,8 +6,8 @@ problem_class: "QGSUncProblem"        # [MaxCutProblem, QGSProblem, QGSUncProble
 problem_params:
   n_nodes: 7                          # MaxCutProblem
   density: 0.7                        # MaxCutProblem
-  num_groups: 10                       # QGSProblem
-  num_instruments_per_group: 5        # QGSProblem
+  num_groups: 5                       # QGSProblem
+  num_instruments_per_group: 3        # QGSProblem
 circuit_class: "AncillaQAOACircuit"
 num_layers: 3
 num_estimator_shots: 10000
