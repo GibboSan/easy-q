@@ -1,0 +1,19 @@
+[2026-03-02 15:45:12,665] INFO: reading parameters file: 'Groups15_Instruments7_Layers5/Groups15_Instruments7_Layers5.yaml'
+[2026-03-02 15:45:12,671] INFO: Using seed 12345
+[2026-03-02 15:45:12,671] INFO: Output will be written in Groups15_Instruments7_Layers5_out
+[2026-03-02 15:45:12,671] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-02 15:45:28,586] INFO: Building QGSUncProblem
+[2026-03-02 15:50:41,481] INFO: The problem has 105 logic qubits
+[2026-03-02 15:50:41,851] INFO: Building AncillaQAOACircuit with 5 layers
+[2026-03-02 15:50:43,012] INFO: Getting virtual circuit metrics
+[2026-03-02 15:50:43,511] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-02 15:51:26,473] INFO: Getting transpiled circuit metrics
+[2026-03-02 15:51:34,034] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-02 15:51:34,188] INFO: Preparing Hamiltonian for Estimator
+[2026-03-02 15:51:34,200] INFO: Clifford Noise Analysis with NEAT
+[2026-03-02 15:52:46,154] INFO: Virtual QC Metrics:    {'depth': 743, '2q_gates': 30720, 'clifford_gates': 210, 'non_clifford_gates': 31065, 't_gates': 0, 'total_gates': 31275, 'num_active_qubits': 120}
+[2026-03-02 15:52:46,155] INFO: Transpiled QC Metrics: {'depth': 64668, '2q_gates': 166604, 'clifford_gates': 662623, 'non_clifford_gates': 42901, 't_gates': 17, 'total_gates': 705524, 'num_active_qubits': 120}
+[2026-03-02 15:52:46,155] INFO: Clifford QC Metrics:   {'depth': 37294, '2q_gates': 114588, 'clifford_gates': 457263, 'non_clifford_gates': 5645, 't_gates': 79, 'total_gates': 462908, 'num_active_qubits': 120}
+[2026-03-02 15:52:46,155] INFO: Ideal simulation run on Clifford circuit
+[2026-03-02 15:57:21,708] INFO: Noisy simulation run on Clifford circuit
+[2026-03-02 15:57:21,709] INFO: Full noise simulation run on Clifford circuit
