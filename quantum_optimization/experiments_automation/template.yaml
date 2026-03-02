@@ -4,13 +4,13 @@ backend_name: "ibm_torino"            # [null, "<backend_name>"]
 is_backend_fake: True
 problem_class: "QGSUncProblem"        # [MaxCutProblem, QGSProblem, QGSUncProblem]
 problem_params:
-  n_nodes: 5                          # MaxCutProblem
-  density: 0.7                        # MaxCutProblem
+  # n_nodes: 5                          # MaxCutProblem
+  # density: 0.7                        # MaxCutProblem
   num_groups: 3                       # QGSProblem
   num_instruments_per_group: 5        # QGSProblem
 circuit_class: "AncillaQAOACircuit"
 num_layers: 3
-num_estimator_shots: 10000
+num_estimator_shots: 100000
 
 # optimization parameters
 num_starting_points: 1
