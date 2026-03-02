@@ -1,0 +1,28 @@
+[2026-03-02 15:23:34,337] INFO: reading parameters file: 'Groups15_Instruments3_Layers3/Groups15_Instruments3_Layers3.yaml'
+[2026-03-02 15:23:34,342] INFO: Using seed 12345
+[2026-03-02 15:23:34,343] INFO: Output will be written in Groups15_Instruments3_Layers3_out
+[2026-03-02 15:23:34,343] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-02 15:23:48,666] INFO: Building QGSUncProblem
+[2026-03-02 15:26:46,966] INFO: The problem has 45 logic qubits
+[2026-03-02 15:26:47,033] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-02 15:26:47,168] INFO: Getting virtual circuit metrics
+[2026-03-02 15:26:47,229] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-02 15:26:51,174] INFO: Getting transpiled circuit metrics
+[2026-03-02 15:26:51,992] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-02 15:26:52,004] INFO: Preparing Hamiltonian for Estimator
+[2026-03-02 15:26:52,006] INFO: Clifford Noise Analysis with NEAT
+[2026-03-02 15:26:58,444] INFO: Virtual QC Metrics:    {'depth': 209, '2q_gates': 3330, 'clifford_gates': 90, 'non_clifford_gates': 3405, 't_gates': 0, 'total_gates': 3495, 'num_active_qubits': 60}
+[2026-03-02 15:26:58,445] INFO: Transpiled QC Metrics: {'depth': 8212, '2q_gates': 16300, 'clifford_gates': 64581, 'non_clifford_gates': 4386, 't_gates': 20, 'total_gates': 68967, 'num_active_qubits': 63}
+[2026-03-02 15:26:58,445] INFO: Clifford QC Metrics:   {'depth': 4544, '2q_gates': 10903, 'clifford_gates': 43504, 'non_clifford_gates': 262, 't_gates': 4, 'total_gates': 43766, 'num_active_qubits': 63}
+[2026-03-02 15:26:58,445] INFO: Ideal simulation run on Clifford circuit
+[2026-03-02 15:27:15,080] INFO: Noisy simulation run on Clifford circuit
+[2026-03-02 15:27:15,081] INFO: Full noise simulation run on Clifford circuit
+[2026-03-02 15:34:04,637] INFO: Clifford Ideal Estimator Value:  -0.5617769434286759
+[2026-03-02 15:34:04,637] INFO: Clifford Noisy Estimator Value:  0.2554150244526567
+[2026-03-02 15:34:04,637] INFO: Circuit creation time:       0.1350 seconds
+[2026-03-02 15:34:04,638] INFO: Transpilation time:          3.9450 seconds
+[2026-03-02 15:34:04,638] INFO: Clifford Transpilation time: 4.5246 seconds
+[2026-03-02 15:34:04,638] INFO: Clifford Ideal Estimation time:  16.6355 seconds
+[2026-03-02 15:34:04,638] INFO: Clifford Noisy Estimation time:  409.5560 seconds
+[2026-03-02 15:34:04,638] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-02 15:34:04,653] INFO: writing output file: Groups15_Instruments3_Layers3_out/output.json

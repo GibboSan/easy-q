@@ -1,0 +1,9 @@
+[2026-03-02 16:00:56,059] INFO: reading parameters file: 'Groups15_Instruments9_Layers3/Groups15_Instruments9_Layers3.yaml'
+[2026-03-02 16:00:56,063] INFO: Using seed 12345
+[2026-03-02 16:00:56,063] INFO: Output will be written in Groups15_Instruments9_Layers3_out
+[2026-03-02 16:00:56,063] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-02 16:01:07,796] INFO: Building QGSUncProblem
+[2026-03-02 16:06:38,110] INFO: The problem has 135 logic qubits
+[2026-03-02 16:06:38,430] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-02 16:06:39,215] INFO: Getting virtual circuit metrics
+[2026-03-02 16:06:39,555] INFO: Transpiling AncillaQAOACircuit for ibm_torino

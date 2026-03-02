@@ -1,0 +1,28 @@
+[2026-03-02 14:47:34,920] INFO: reading parameters file: 'Groups11_Instruments7_Layers5/Groups11_Instruments7_Layers5.yaml'
+[2026-03-02 14:47:34,926] INFO: Using seed 12345
+[2026-03-02 14:47:34,926] INFO: Output will be written in Groups11_Instruments7_Layers5_out
+[2026-03-02 14:47:34,927] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-02 14:47:50,102] INFO: Building QGSUncProblem
+[2026-03-02 14:52:53,405] INFO: The problem has 77 logic qubits
+[2026-03-02 14:52:53,624] INFO: Building AncillaQAOACircuit with 5 layers
+[2026-03-02 14:52:54,238] INFO: Getting virtual circuit metrics
+[2026-03-02 14:52:54,519] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-02 14:53:16,701] INFO: Getting transpiled circuit metrics
+[2026-03-02 14:53:20,952] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-02 14:53:21,025] INFO: Preparing Hamiltonian for Estimator
+[2026-03-02 14:53:21,031] INFO: Clifford Noise Analysis with NEAT
+[2026-03-02 14:53:55,022] INFO: Virtual QC Metrics:    {'depth': 575, '2q_gates': 17138, 'clifford_gates': 154, 'non_clifford_gates': 17391, 't_gates': 0, 'total_gates': 17545, 'num_active_qubits': 88}
+[2026-03-02 14:53:55,022] INFO: Transpiled QC Metrics: {'depth': 37448, '2q_gates': 91837, 'clifford_gates': 368377, 'non_clifford_gates': 24249, 't_gates': 16, 'total_gates': 392626, 'num_active_qubits': 93}
+[2026-03-02 14:53:55,022] INFO: Clifford QC Metrics:   {'depth': 21061, '2q_gates': 61464, 'clifford_gates': 245125, 'non_clifford_gates': 2872, 't_gates': 30, 'total_gates': 247997, 'num_active_qubits': 93}
+[2026-03-02 14:53:55,022] INFO: Ideal simulation run on Clifford circuit
+[2026-03-02 14:55:31,644] INFO: Noisy simulation run on Clifford circuit
+[2026-03-02 14:55:31,644] INFO: Full noise simulation run on Clifford circuit
+[2026-03-02 15:31:37,060] INFO: Clifford Ideal Estimator Value:  -1.0518631022032758
+[2026-03-02 15:31:37,061] INFO: Clifford Noisy Estimator Value:  0.38926610618749236
+[2026-03-02 15:31:37,061] INFO: Circuit creation time:       0.6139 seconds
+[2026-03-02 15:31:37,061] INFO: Transpilation time:          22.1824 seconds
+[2026-03-02 15:31:37,061] INFO: Clifford Transpilation time: 30.1147 seconds
+[2026-03-02 15:31:37,061] INFO: Clifford Ideal Estimation time:  96.6214 seconds
+[2026-03-02 15:31:37,061] INFO: Clifford Noisy Estimation time:  2165.4158 seconds
+[2026-03-02 15:31:37,061] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-02 15:31:37,081] INFO: writing output file: Groups11_Instruments7_Layers5_out/output.json
