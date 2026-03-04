@@ -1,3 +1,24 @@
+'''
+Production Planning Problem
+
+This module defines a production-planning assignment problem. Each product must be
+assigned to exactly one machine, and each machine has a maximum number of products
+it can process. The objective minimizes total assignment cost.
+
+Variables
+- M: set of machines.
+- P: set of products.
+- q_{m,p}: cost of assigning product p to machine m.
+- N_m: maximum number of products assignable to machine m.
+- x_{m,p} in {0,1}: 1 if product p is assigned to machine m, 0 otherwise.
+
+Formal formulation
+    minimize  sum_{m in M} sum_{p in P} q_{m,p} x_{m,p}
+    subject to sum_{m in M} x_{m,p} = 1,    for all p in P
+               sum_{p in P} x_{m,p} <= N_m, for all m in M
+               x_{m,p} in {0,1},            for all m in M, p in P.
+'''
+
 import itertools
 
 

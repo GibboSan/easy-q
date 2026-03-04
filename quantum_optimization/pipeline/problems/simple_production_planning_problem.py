@@ -1,3 +1,24 @@
+'''
+Simple Production Planning Problem
+
+This module defines a simplified production-planning assignment problem with
+random assignment costs. Each product is assigned to exactly one machine, and each
+machine has a uniform capacity limit derived from the problem dimensions.
+
+Variables
+- M: set of machines.
+- P: set of products.
+- q_{m,p}: random assignment cost for assigning product p to machine m.
+- k: common machine capacity limit.
+- x_{m,p} in {0,1}: 1 if product p is assigned to machine m, 0 otherwise.
+
+Formal formulation
+    minimize  sum_{m in M} sum_{p in P} q_{m,p} x_{m,p}
+    subject to sum_{m in M} x_{m,p} = 1,  for all p in P
+               sum_{p in P} x_{m,p} <= k, for all m in M
+               x_{m,p} in {0,1},          for all m in M, p in P.
+'''
+
 import itertools
 import math
 
