@@ -1,0 +1,28 @@
+[2026-03-04 16:49:26,010] INFO: reading parameters file: 'G5_I7_S55555/G5_I7_S55555.yaml'
+[2026-03-04 16:49:26,017] INFO: Using seed 55555
+[2026-03-04 16:49:26,017] INFO: Output will be written in G5_I7_S55555_out
+[2026-03-04 16:49:26,018] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-04 16:49:37,555] INFO: Building QGSUncProblem
+[2026-03-04 16:49:42,867] INFO: The problem has 35 logic qubits
+[2026-03-04 16:49:42,887] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-04 16:49:42,937] INFO: Getting virtual circuit metrics
+[2026-03-04 16:49:42,965] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-04 16:49:45,627] INFO: Getting transpiled circuit metrics
+[2026-03-04 16:49:45,976] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-04 16:49:45,983] INFO: Preparing Hamiltonian for Estimator
+[2026-03-04 16:49:45,984] INFO: Clifford Noise Analysis with NEAT
+[2026-03-04 16:49:49,763] INFO: Virtual QC Metrics:    {'depth': 215, '2q_gates': 2505, 'clifford_gates': 70, 'non_clifford_gates': 2550, 't_gates': 0, 'total_gates': 2620, 'num_active_qubits': 40}
+[2026-03-04 16:49:49,763] INFO: Transpiled QC Metrics: {'depth': 8284, '2q_gates': 12238, 'clifford_gates': 48291, 'non_clifford_gates': 3807, 't_gates': 7, 'total_gates': 52098, 'num_active_qubits': 45}
+[2026-03-04 16:49:49,763] INFO: Clifford QC Metrics:   {'depth': 3834, '2q_gates': 7342, 'clifford_gates': 28030, 'non_clifford_gates': 472, 't_gates': 5, 'total_gates': 28502, 'num_active_qubits': 45}
+[2026-03-04 16:49:49,763] INFO: Ideal simulation run on Clifford circuit
+[2026-03-04 16:49:55,939] INFO: Noisy simulation run on Clifford circuit
+[2026-03-04 16:49:55,940] INFO: Full noise simulation run on Clifford circuit
+[2026-03-04 16:54:12,268] INFO: Clifford Ideal Estimator Value:  0.9452224660040291
+[2026-03-04 16:54:12,268] INFO: Clifford Noisy Estimator Value:  -0.04217630170173922
+[2026-03-04 16:54:12,268] INFO: Circuit creation time:       0.0496 seconds
+[2026-03-04 16:54:12,268] INFO: Transpilation time:          2.6624 seconds
+[2026-03-04 16:54:12,268] INFO: Clifford Transpilation time: 2.5641 seconds
+[2026-03-04 16:54:12,268] INFO: Clifford Ideal Estimation time:  6.1760 seconds
+[2026-03-04 16:54:12,268] INFO: Clifford Noisy Estimation time:  256.3274 seconds
+[2026-03-04 16:54:12,268] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-04 16:54:12,286] INFO: writing output file: G5_I7_S55555_out/output.json

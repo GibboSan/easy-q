@@ -1,0 +1,28 @@
+[2026-03-04 16:00:15,572] INFO: reading parameters file: 'G7_I7_S33333/G7_I7_S33333.yaml'
+[2026-03-04 16:00:15,576] INFO: Using seed 33333
+[2026-03-04 16:00:15,576] INFO: Output will be written in G7_I7_S33333_out
+[2026-03-04 16:00:15,576] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-04 16:00:28,406] INFO: Building QGSUncProblem
+[2026-03-04 16:03:46,888] INFO: The problem has 49 logic qubits
+[2026-03-04 16:03:46,929] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-04 16:03:47,020] INFO: Getting virtual circuit metrics
+[2026-03-04 16:03:47,066] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-04 16:03:51,105] INFO: Getting transpiled circuit metrics
+[2026-03-04 16:03:51,769] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-04 16:03:51,780] INFO: Preparing Hamiltonian for Estimator
+[2026-03-04 16:03:51,782] INFO: Clifford Noise Analysis with NEAT
+[2026-03-04 16:03:57,703] INFO: Virtual QC Metrics:    {'depth': 271, '2q_gates': 4536, 'clifford_gates': 98, 'non_clifford_gates': 4599, 't_gates': 0, 'total_gates': 4697, 'num_active_qubits': 56}
+[2026-03-04 16:03:57,703] INFO: Transpiled QC Metrics: {'depth': 14003, '2q_gates': 22944, 'clifford_gates': 90929, 'non_clifford_gates': 6895, 't_gates': 9, 'total_gates': 97824, 'num_active_qubits': 61}
+[2026-03-04 16:03:57,703] INFO: Clifford QC Metrics:   {'depth': 6378, '2q_gates': 14445, 'clifford_gates': 55215, 'non_clifford_gates': 489, 't_gates': 3, 'total_gates': 55704, 'num_active_qubits': 61}
+[2026-03-04 16:03:57,703] INFO: Ideal simulation run on Clifford circuit
+[2026-03-04 16:04:08,579] INFO: Noisy simulation run on Clifford circuit
+[2026-03-04 16:04:08,579] INFO: Full noise simulation run on Clifford circuit
+[2026-03-04 16:14:09,476] INFO: Clifford Ideal Estimator Value:  1.6288607998872482
+[2026-03-04 16:14:09,476] INFO: Clifford Noisy Estimator Value:  0.06326565218606427
+[2026-03-04 16:14:09,476] INFO: Circuit creation time:       0.0909 seconds
+[2026-03-04 16:14:09,476] INFO: Transpilation time:          4.0390 seconds
+[2026-03-04 16:14:09,476] INFO: Clifford Transpilation time: 4.7194 seconds
+[2026-03-04 16:14:09,476] INFO: Clifford Ideal Estimation time:  10.8753 seconds
+[2026-03-04 16:14:09,476] INFO: Clifford Noisy Estimation time:  600.8966 seconds
+[2026-03-04 16:14:09,476] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-04 16:14:09,485] INFO: writing output file: G7_I7_S33333_out/output.json

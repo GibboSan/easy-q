@@ -1,0 +1,9 @@
+[2026-03-04 20:35:59,000] INFO: reading parameters file: 'G15_I9_S55555/G15_I9_S55555.yaml'
+[2026-03-04 20:35:59,016] INFO: Using seed 55555
+[2026-03-04 20:35:59,017] INFO: Output will be written in G15_I9_S55555_out
+[2026-03-04 20:35:59,017] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-04 20:36:16,706] INFO: Building QGSUncProblem
+[2026-03-04 20:41:57,461] INFO: The problem has 135 logic qubits
+[2026-03-04 20:41:58,030] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-04 20:41:59,280] INFO: Getting virtual circuit metrics
+[2026-03-04 20:41:59,777] INFO: Transpiling AncillaQAOACircuit for ibm_torino
