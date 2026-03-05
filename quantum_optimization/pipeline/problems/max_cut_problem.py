@@ -1,3 +1,23 @@
+'''
+MaxCut Problem
+
+This module defines a random Max-Cut instance on an Erdos-Renyi graph and maps it
+to a binary quadratic optimization model. Each node is assigned to one of two
+partitions, and the objective prefers edges whose endpoints are in different sets.
+
+Variables
+- G=(V,E): undirected graph.
+- x_i in {0,1}: partition indicator for node i (i in V).
+
+Formal formulation
+Equivalent cut maximization form:
+    maximize  sum_{(u,v) in E} (x_u + x_v - 2 x_u x_v)
+
+Implemented minimization form in this file:
+    minimize  sum_{(u,v) in E} (2 x_u x_v - x_u - x_v)
+    subject to x_i in {0,1} for all i in V.
+'''
+
 import networkx as nx
 from qiskit_optimization import QuadraticProgram
 
