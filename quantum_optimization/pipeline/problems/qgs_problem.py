@@ -1,3 +1,23 @@
+'''
+Q Group Selection Problem
+
+This module defines a correlation-based group selection problem. Instruments are
+partitioned into groups, and exactly one instrument must be selected from each
+group. The objective minimizes the total pairwise correlation among selected
+instruments.
+
+Variables
+- G: set of groups.
+- I_g: set of instruments in group g.
+- x_i in {0,1}: 1 if instrument i is selected, 0 otherwise.
+- rho_{ij}: correlation coefficient between instruments i and j.
+
+Formal formulation
+    minimize  sum_{i<j} rho_{ij} x_i x_j
+    subject to sum_{i in I_g} x_i = 1,   for all g in G
+               x_i in {0,1},             for all instruments i.
+'''
+
 import numpy as np
 from qiskit_optimization import QuadraticProgram
 
