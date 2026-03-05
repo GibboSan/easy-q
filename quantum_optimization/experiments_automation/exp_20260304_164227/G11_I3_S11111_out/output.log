@@ -1,0 +1,28 @@
+[2026-03-04 17:44:16,101] INFO: reading parameters file: 'G11_I3_S11111/G11_I3_S11111.yaml'
+[2026-03-04 17:44:16,117] INFO: Using seed 11111
+[2026-03-04 17:44:16,118] INFO: Output will be written in G11_I3_S11111_out
+[2026-03-04 17:44:16,118] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-04 17:44:29,922] INFO: Building QGSUncProblem
+[2026-03-04 17:44:34,535] INFO: The problem has 33 logic qubits
+[2026-03-04 17:44:34,601] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-04 17:44:34,708] INFO: Getting virtual circuit metrics
+[2026-03-04 17:44:34,740] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-04 17:44:36,671] INFO: Getting transpiled circuit metrics
+[2026-03-04 17:44:37,093] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-04 17:44:37,098] INFO: Preparing Hamiltonian for Estimator
+[2026-03-04 17:44:37,099] INFO: Clifford Noise Analysis with NEAT
+[2026-03-04 17:44:40,465] INFO: Virtual QC Metrics:    {'depth': 161, '2q_gates': 1848, 'clifford_gates': 66, 'non_clifford_gates': 1903, 't_gates': 0, 'total_gates': 1969, 'num_active_qubits': 44}
+[2026-03-04 17:44:40,465] INFO: Transpiled QC Metrics: {'depth': 5849, '2q_gates': 9030, 'clifford_gates': 36346, 'non_clifford_gates': 2460, 't_gates': 17, 'total_gates': 38806, 'num_active_qubits': 44}
+[2026-03-04 17:44:40,465] INFO: Clifford QC Metrics:   {'depth': 2657, '2q_gates': 5550, 'clifford_gates': 22228, 'non_clifford_gates': 150, 't_gates': 1, 'total_gates': 22378, 'num_active_qubits': 44}
+[2026-03-04 17:44:40,465] INFO: Ideal simulation run on Clifford circuit
+[2026-03-04 17:44:47,899] INFO: Noisy simulation run on Clifford circuit
+[2026-03-04 17:44:47,899] INFO: Full noise simulation run on Clifford circuit
+[2026-03-04 17:47:57,741] INFO: Clifford Ideal Estimator Value:  2.258191993115945
+[2026-03-04 17:47:57,742] INFO: Clifford Noisy Estimator Value:  1.7344233909917588
+[2026-03-04 17:47:57,742] INFO: Circuit creation time:       0.1069 seconds
+[2026-03-04 17:47:57,742] INFO: Transpilation time:          1.9302 seconds
+[2026-03-04 17:47:57,743] INFO: Clifford Transpilation time: 1.8494 seconds
+[2026-03-04 17:47:57,743] INFO: Clifford Ideal Estimation time:  7.4334 seconds
+[2026-03-04 17:47:57,743] INFO: Clifford Noisy Estimation time:  189.8417 seconds
+[2026-03-04 17:47:57,743] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-04 17:47:57,762] INFO: writing output file: G11_I3_S11111_out/output.json

@@ -1,0 +1,44 @@
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260304_164227/../../run_performance.py", line 66, in <module>
+    main()
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260304_164227/../../run_performance.py", line 58, in main
+    output_dict = estimator_performance_run(parameter_dict)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 111, in estimator_performance_run
+    tqc = transpile_circuit(qc, backend, seed, optimization_level=3)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 35, in transpile_circuit
+    return pm.run(qc)
+           ^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/transpiler/passmanager.py", line 415, in run
+    return super().run(circuits, output_name, callback, num_processes=num_processes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/transpiler/passmanager.py", line 438, in wrapper
+    return meth(*meth_args, **meth_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/transpiler/passmanager.py", line 197, in run
+    return super().run(
+           ^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/passmanager.py", line 237, in run
+    out = [
+          ^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/passmanager.py", line 238, in <listcomp>
+    _run_workflow(
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/passmanager.py", line 311, in _run_workflow
+    passmanager_ir, final_state = flow_controller.execute(
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/base_tasks.py", line 218, in execute
+    passmanager_ir, state = next_task.execute(
+                            ^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/base_tasks.py", line 218, in execute
+    passmanager_ir, state = next_task.execute(
+                            ^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/transpiler/basepasses.py", line 167, in execute
+    new_dag, state = super().execute(
+                     ^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/passmanager/base_tasks.py", line 98, in execute
+    ret = self.run(passmanager_ir)
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/qiskit/transpiler/passes/layout/sabre_layout.py", line 207, in run
+    raise TranspilerError(
+qiskit.transpiler.exceptions.TranspilerError: 'More virtual qubits (150) exist than physical (133).'
