@@ -13,7 +13,7 @@ replaced with **QAOA**, using the circuit variants available in
 
 Typical usage::
 
-    from pipeline.frank_wolfe import QFWSolver
+    from pipeline.solvers.frank_wolfe import QFWSolver
     from pipeline.problems.qgs_problem import QGSProblem
     from pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
     from pipeline.backends import get_aer_from_backend
@@ -41,12 +41,13 @@ from qiskit.providers import Backend
 
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
+from pipeline.solvers.abstract_solver import AbstractSolver
 
-from pipeline.frank_wolfe.gradient import build_Q_and_c, compute_gradient
-from pipeline.frank_wolfe.relaxation import build_initial_point
-from pipeline.frank_wolfe.linear_minimisation import qaoa_lmo
-from pipeline.frank_wolfe.rounding import round_solution
-from pipeline.frank_wolfe.qfw_utils import (
+from pipeline.solvers.frank_wolfe.gradient import build_Q_and_c, compute_gradient
+from pipeline.solvers.frank_wolfe.relaxation import build_initial_point
+from pipeline.solvers.frank_wolfe.linear_minimisation import qaoa_lmo
+from pipeline.solvers.frank_wolfe.rounding import round_solution
+from pipeline.solvers.frank_wolfe.qfw_utils import (
     step_size,
     frank_wolfe_gap,
     evaluate_continuous_objective,
@@ -56,7 +57,7 @@ from pipeline.frank_wolfe.qfw_utils import (
 logger = logging.getLogger("pipeline_logger")
 
 
-class QFWSolver:
+class QFWSolver(AbstractSolver):
     """
     Quantum Frank-Wolfe solver for Quadratic Binary Optimisation.
 
@@ -98,10 +99,19 @@ class QFWSolver:
         convergence_tol: float = 1e-6,
         lmo_params: Optional[dict] = None,
     ):
-        self.problem = problem
+        super().__init__(
+            problem=problem,
+            backend=backend,
+            seed=seed,
+            solver_params={
+                "num_fw_iterations": num_fw_iterations,
+                "step_size_rule": step_size_rule,
+                "rounding_method": rounding_method,
+                "convergence_tol": convergence_tol,
+                "lmo_params": lmo_params or {},
+            },
+        )
         self.circuit_class = circuit_class
-        self.backend = backend
-        self.seed = seed
         self.num_fw_iterations = num_fw_iterations
         self.step_size_rule = step_size_rule
         self.rounding_method = rounding_method

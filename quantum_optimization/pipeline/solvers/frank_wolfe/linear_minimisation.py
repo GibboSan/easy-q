@@ -25,7 +25,7 @@ from qiskit_ibm_runtime import EstimatorV2, SamplerV2
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
 from pipeline.runtime import parameter_optimization, sample_circuit
-from pipeline.frank_wolfe.relaxation import LinearSubproblem, gradient_to_hamiltonian
+from pipeline.solvers.frank_wolfe.relaxation import LinearSubproblem, gradient_to_hamiltonian
 
 logger = logging.getLogger("pipeline_logger")
 
