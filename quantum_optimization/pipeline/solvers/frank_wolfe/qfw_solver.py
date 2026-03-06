@@ -8,24 +8,24 @@ Implements Algorithm 1 from:
     for Quadratic Binary Optimization"* (2022).
 
 The Adiabatic Quantum Computing (AQC) step of the original paper is
-replaced with **QAOA**, using the circuit variants available in
+replaced with **QAOA**, using the circuits available in
 ``pipeline.qaoa_circuits``.
 
 Typical usage::
 
     from pipeline.solvers.frank_wolfe import QFWSolver
-    from pipeline.problems.qgs_problem import QGSProblem
+    from pipeline.problems.abstract_problem import AbstractProblem
     from pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
     from pipeline.backends import get_aer_from_backend
 
-    problem = QGSProblem(seed=0, problem_params={...})
+    problem = AbstractProblem(seed=0, problem_params={...})
     backend = get_aer_from_backend(seed=0)
 
     solver = QFWSolver(
         problem=problem,
-        circuit_class=QAOACircuit,
         backend=backend,
         seed=0,
+        circuit_class=QAOACircuit,
         num_fw_iterations=10,
         lmo_params={"num_layers": 1, "num_starting_points": 3},
     )
@@ -65,13 +65,13 @@ class QFWSolver(AbstractSolver):
     ----------
     problem : AbstractProblem
         The optimisation problem to solve.
-    circuit_class : Type[QAOACircuit]
-        QAOA circuit variant used by the LMO
-        (``QAOACircuit``, ``AncillaQAOACircuit``, …).
     backend : Backend
         Quantum backend (real or simulator).
     seed : int
         Random seed.
+    circuit_class : Type[QAOACircuit]
+        QAOA circuit variant used by the LMO
+        (``QAOACircuit``, ``AncillaQAOACircuit``, …).
     num_fw_iterations : int
         Maximum number of Frank-Wolfe outer iterations (*T*).
     step_size_rule : str
@@ -90,9 +90,9 @@ class QFWSolver(AbstractSolver):
     def __init__(
         self,
         problem: AbstractProblem,
-        circuit_class: Type[QAOACircuit],
         backend: Backend,
         seed: int,
+        circuit_class: Type[QAOACircuit],
         num_fw_iterations: int = 10,
         step_size_rule: str = "standard",
         rounding_method: str = "greedy",
@@ -136,17 +136,17 @@ class QFWSolver(AbstractSolver):
         Returns
         -------
         dict
-            ``best_bitstring``          – str, best binary solution found
-            ``best_objective``          – float, its objective value
-            ``continuous_solution``     – list, final x in [0,1]^n
-            ``continuous_objective``    – float, f(x_T)
-            ``rounding_method``         – str
-            ``num_iterations``          – int
-            ``convergence``             – dict from ConvergenceTracker
-            ``total_time``              – float (seconds)
-            ``classic_best_bitstring``  – str
-            ``classic_best_objective``  – float
-            ``seed``                    – int
+            ``best_bitstring``          - str, best binary solution found
+            ``best_objective``          - float, its objective value
+            ``continuous_solution``     - list, final x in [0,1]^n
+            ``continuous_objective``    - float, f(x_T)
+            ``rounding_method``         - str
+            ``num_iterations``          - int
+            ``convergence``             - dict from ConvergenceTracker
+            ``total_time``              - float (seconds)
+            ``classic_best_bitstring``  - str
+            ``classic_best_objective``  - float
+            ``seed``                    - int
         """
         logger.info(
             f"Starting Q-FW with T={self.num_fw_iterations}, "
