@@ -1,5 +1,5 @@
 '''
-Q Group Selection Problem
+Quadratic Group Selection Problem
 
 This module defines a correlation-based group selection problem. Instruments are
 partitioned into groups, and exactly one instrument must be selected from each
