@@ -1,0 +1,146 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{Q-FW (Yurtsever et al., 2022): Sections 3--4 Extraction and Comparison}
+\author{}
+\date{2026-03-09}
+
+\begin{document}
+\maketitle
+
+\section{Scope}
+This note summarizes the method in Sections 3 and 4 of:
+\emph{Q-FW: A Hybrid Classical-Quantum Frank-Wolfe for Quadratic Binary Optimization}.
+It then compares that method against the current implementation in this repository.
+
+\section{Section 3: Problem Formulation (Extracted Method)}
+The paper starts from a constrained quadratic binary optimization (QBO):
+\begin{equation}
+\min_{x \in \{0,1\}^n} \; x^\top Q x + 2 s^\top x
+\quad \text{s.t.} \quad a_i^\top x = b_i,\; i=1,\dots,m.
+\end{equation}
+
+Main reformulation steps:
+\begin{enumerate}
+\item Symmetrize $Q$ without changing the objective.
+\item Encode linear term into quadratic form for binary $x$.
+\item Lift to matrix variable $X = xx^\top$ (rank-1, completely positive).
+\item Rewrite objective and constraints linearly in $(x, X)$:
+\begin{itemize}
+\item $x^\top Q x = \mathrm{Tr}(QX)$,
+\item $(a_i^\top x)^2 = b_i^2 \iff \mathrm{Tr}(A_i X) = b_i^2$, where $A_i = a_i a_i^\top$.
+\end{itemize}
+\item Replace nonconvex constraints with complete positivity constraints using the lifted matrix
+\(W = \begin{bmatrix}1 & x^\top \\ x & X\end{bmatrix} \in \Delta^p\), with $p=n+1$.
+\item Compact form:
+\begin{equation}
+\min_{W \in \Delta^p} \; \mathrm{Tr}(CW)
+\quad \text{s.t.} \quad \mathcal{A}W = v,
+\end{equation}
+where $\mathcal{A}$ and $v$ collect all affine constraints, including
+$\{a_i^\top x=b_i\}$, $\{\mathrm{Tr}(A_iX)=b_i^2\}$, $\mathrm{diag}(X)=x$, and $W_{1,1}=1$.
+\end{enumerate}
+
+This CP model is convex but NP-hard because of complete positivity.
+
+\section{Section 4: Quantum Frank-Wolfe (FWAL/FWQP)}
+The algorithm solves the CP model via an augmented Lagrangian:
+\begin{equation}
+\mathcal{L}_{\beta}(W; y) = \mathrm{Tr}(CW) + y^\top(\mathcal{A}W-v) + \frac{\beta}{2}\|\mathcal{A}W-v\|_2^2,
+\end{equation}
+with primal variable $W \in \Delta^p$, dual variable $y \in \mathbb{R}^d$, and penalty $\beta>0$.
+
+At iteration $t$ (paper notation):
+\begin{enumerate}
+\item Increase penalty: $\beta_t = \beta_0\sqrt{t+1}$.
+\item Primal gradient matrix:
+\begin{equation}
+G_t = C + \mathcal{A}^\ast y_t + \beta_t\,\mathcal{A}^\ast(\mathcal{A}W_t - v).
+\end{equation}
+\item LMO over complete-positive domain:
+\begin{equation}
+H_t \in \arg\min_{W\in\Delta^p} \mathrm{Tr}(G_tW).
+\end{equation}
+This is reduced to QUBO by solving
+\begin{equation}
+w_t \in \arg\min_{w\in\{0,1\}^p} w^\top G_t w,
+\quad H_t = w_t w_t^\top.
+\end{equation}
+\item FW primal update:
+\begin{equation}
+W_{t+1} = (1-\eta_t)W_t + \eta_t H_t,
+\quad \eta_t = \frac{2}{t+1}.
+\end{equation}
+\item Dual ascent:
+\begin{equation}
+g_t = \mathcal{A}W_{t+1} - v,
+\quad y_{t+1} = y_t + \gamma_t g_t.
+\end{equation}
+In practice they use constant $\gamma_t=\beta_0$.
+\item FWQP is recovered by disabling dual updates ($y_0=0$, $\gamma_t=0$).
+\end{enumerate}
+
+Rounding in Section 4:
+\begin{enumerate}
+\item From approximate $\hat W$, remove first row/column to get $\hat X$.
+\item Compute best rank-1 approximation $\hat x\hat x^\top$ of $\hat X$ (Frobenius norm).
+\item Optionally project $\hat x$ to feasible set of the original QBO (for permutations, Hungarian projection).
+\end{enumerate}
+
+\section{Differences vs Current Implementation}
+\subsection{Summary}
+The current code is a standard constrained FW-like loop in variable $x\in[0,1]^n$.
+The paper's Q-FW is a CP-space FWAL/FWQP method in lifted variable $W\in\Delta^p$
+with augmented-Lagrangian primal-dual updates.
+This is a structural mismatch, not a minor hyperparameter mismatch.
+
+\subsection{Concrete Mismatches}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{0.23\linewidth} p{0.34\linewidth} p{0.35\linewidth}}
+\toprule
+Paper (Sections 3--4) & Current implementation & Impact \\
+\midrule
+Optimize lifted CP variable $W$ with constraints $\mathcal{A}W=v$. & Optimizes vector $x$ directly using $Q,c$ from original QBO; see \texttt{qfw\_solver.py} lines 121--123 and 170--194, and \texttt{gradient.py} lines 23--54. & Not the CP reformulation the paper proves/uses. \\
+
+Use augmented Lagrangian $\mathcal{L}_\beta(W;y)$ with dual $y$ and increasing $\beta_t$. & No dual variable, no $\beta_t$, no primal-dual saddle updates in \texttt{qfw\_solver.py}. & Missing core FWAL/FWQP mechanism. \\
+
+Primal gradient is matrix $G_t = C + \mathcal{A}^\ast y_t + \beta_t\mathcal{A}^\ast(\mathcal{A}W_t-v)$. & Uses $\nabla f(x)=(Q+Q^\top)x+c$; \texttt{gradient.py} lines 57--77. & Different objective geometry and search direction. \\
+
+LMO solves $\min_{W\in\Delta^p}\mathrm{Tr}(G_tW)$ via binary QUBO in $w\in\{0,1\}^p$, then $H_t=ww^\top$. & LMO minimizes linear form $\nabla f(x)^\top s$ over sampled feasible bitstrings; \texttt{linear\_minimisation.py} lines 10--14 and 142--152. & Not equivalent to the paper's CP-domain LMO. \\
+
+Dual step $y_{t+1}=y_t+\gamma_t(\mathcal{A}W_{t+1}-v)$. & Absent from \texttt{qfw\_solver.py}. & Cannot reproduce FWAL behavior/convergence statement in Prop. 1. \\
+
+Rounding from $\hat W\to\hat X\to\hat x$ using best rank-1 approx and optional projection. & Threshold/greedy/randomized rounding on $x$; \texttt{rounding.py} lines 26--129. & Different decoding path than paper. \\
+
+Constraint handling is encoded in affine map $\mathcal{A}$ and residual norm $\|\mathcal{A}W-v\|$. & Constraint treatment mostly by feasible sample filtering and heuristic rounding; also fallback may pick infeasible sample, \texttt{linear\_minimisation.py} lines 154--159. & Feasibility control differs from method definition. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{What To Re-Implement Later (Correct Direction)}
+For a faithful implementation of Sections 3--4, the future solver should:
+\begin{enumerate}
+\item Construct CP-lifted data $(C, \mathcal{A}, v)$ from the QBO instance.
+\item Maintain state $(W_t, y_t, \beta_t)$.
+\item Compute matrix gradient $G_t$ of the augmented Lagrangian.
+\item Solve LMO in lifted domain (QUBO in $w$, then $H_t=w w^\top$).
+\item Apply primal update for $W$ and dual ascent for $y$.
+\item Decode $\hat W$ with rank-1 approximation and projection to original feasible set.
+\end{enumerate}
+
+\section{Code References}
+The comparison above used these files:
+\begin{itemize}
+\item \texttt{quantum\_optimization/pipeline/solvers/frank\_wolfe/qfw\_solver.py}
+\item \texttt{quantum\_optimization/pipeline/solvers/frank\_wolfe/gradient.py}
+\item \texttt{quantum\_optimization/pipeline/solvers/frank\_wolfe/linear\_minimisation.py}
+\item \texttt{quantum\_optimization/pipeline/solvers/frank\_wolfe/rounding.py}
+\item \texttt{quantum\_optimization/pipeline/solvers/frank\_wolfe/qfw\_utils.py}
+\end{itemize}
+
+\end{document}
