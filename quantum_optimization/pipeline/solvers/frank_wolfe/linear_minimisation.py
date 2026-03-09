@@ -1,172 +1,122 @@
-"""
-Linear Minimisation Oracle (LMO) for the Quantum Frank-Wolfe algorithm.
+"""Linear minimisation oracle for FWAL in lifted space.
 
-Replaces the Adiabatic Quantum Computing (AQC) step from the original
-Q-FW paper with a **QAOA-based** approach, reusing the circuit
-infrastructure already available in ``pipeline.qaoa_circuits``.
+The oracle solves (approximately):
 
-At each Frank-Wolfe iteration the LMO solves:
+    min_{w in {0,1}^p} w^T G w
 
-    min_{s in C}  grad^T s
-
-where C is the set of *feasible binary vectors*.  The linear objective
-is encoded as a diagonal Hamiltonian and handed to QAOA; the resulting
-samples are filtered for feasibility and the best vertex is returned.
+and returns H = w w^T, which is an extreme point of Delta^p.
 """
 
-import logging
 import time
-from typing import Dict, Optional, Type
+from typing import Dict
 
 import numpy as np
-from qiskit.providers import Backend
-from qiskit_ibm_runtime import EstimatorV2, SamplerV2
-
-from pipeline.problems.abstract_problem import AbstractProblem
-from pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
-from pipeline.runtime import parameter_optimization, sample_circuit
-from pipeline.solvers.frank_wolfe.relaxation import LinearSubproblem, gradient_to_hamiltonian
-
-logger = logging.getLogger("pipeline_logger")
 
 
-def qaoa_lmo(
-    grad: np.ndarray,
-    problem: AbstractProblem,
-    circuit_class: Type[QAOACircuit],
-    backend: Backend,
+def _objective_from_bits(G: np.ndarray, w: np.ndarray) -> float:
+    return float(w @ G @ w)
+
+
+def _bits_to_bitstring(w: np.ndarray) -> str:
+    return "".join(str(int(v)) for v in w)
+
+
+def _solve_exact_bruteforce(G: np.ndarray) -> tuple[np.ndarray, float]:
+    p = G.shape[0]
+    best_w = np.zeros(p, dtype=float)
+    best_val = float("inf")
+    for mask in range(1 << p):
+        w = np.array([(mask >> i) & 1 for i in range(p)], dtype=float)
+        val = _objective_from_bits(G, w)
+        if val < best_val:
+            best_val = val
+            best_w = w
+    return best_w, best_val
+
+
+def _solve_random_local_search(
+    G: np.ndarray,
+    rng: np.random.Generator,
+    num_random_samples: int,
+    local_search_steps: int,
+) -> tuple[np.ndarray, float]:
+    p = G.shape[0]
+    best_w = rng.integers(0, 2, size=p).astype(float)
+    best_val = _objective_from_bits(G, best_w)
+
+    for _ in range(max(1, num_random_samples)):
+        w = rng.integers(0, 2, size=p).astype(float)
+        val = _objective_from_bits(G, w)
+
+        improved = True
+        steps = 0
+        while improved and steps < local_search_steps:
+            improved = False
+            steps += 1
+            for i in range(p):
+                w_try = w.copy()
+                w_try[i] = 1.0 - w_try[i]
+                val_try = _objective_from_bits(G, w_try)
+                if val_try + 1e-12 < val:
+                    w = w_try
+                    val = val_try
+                    improved = True
+
+        if val < best_val:
+            best_w = w
+            best_val = val
+
+    return best_w, best_val
+
+
+def fwal_lmo(
+    G: np.ndarray,
     seed: int,
     *,
-    num_layers: int = 1,
-    num_starting_points: int = 3,
-    bounds: tuple = (-np.pi, np.pi),
-    optimization_params: Optional[dict] = None,
-    num_estimator_shots: int = 1024,
-    num_sampler_shots: int = 4096,
-    use_cache: bool = False,
-    cache_filename: str = "lmo_cache.yaml",
-    cache_save_every: int = 1,
+    max_exact_bits: int = 22,
+    num_random_samples: int = 4096,
+    local_search_steps: int = 200,
 ) -> Dict:
-    """
-    Solve the Frank-Wolfe LMO via QAOA.
-
-    Finds an approximate solution to::
-
-        min_{s in C}  grad^T s
-
-    where *C* is the set of feasible binary vectors defined by the
-    constraints of ``problem``.
+    """Solve the FWAL LMO and return H = w w^T.
 
     Parameters
     ----------
-    grad : np.ndarray, shape (n,)
-        Gradient vector at the current FW iterate.
-    problem : AbstractProblem
-        Original problem (provides constraint info and feasibility checking).
-    circuit_class : Type[QAOACircuit]
-        QAOA circuit variant (``QAOACircuit``, ``AncillaQAOACircuit``, …).
-    backend : Backend
-        Quantum backend for circuit execution.
+    G : np.ndarray
+        Current FWAL gradient matrix.
     seed : int
-        Random seed.
-    num_layers : int
-        Number of QAOA layers for the LMO.
-    num_starting_points : int
-        Multi-start optimisation attempts for QAOA parameters.
-    bounds : tuple
-        ``(lower, upper)`` for QAOA parameter initialisation.
-    optimization_params : dict, optional
-        Optimizer settings forwarded to :func:`pipeline.runtime.parameter_optimization`.
-    num_estimator_shots : int
-        Shots for the Estimator during parameter optimisation.
-    num_sampler_shots : int
-        Shots for the final Sampler call.
-    use_cache : bool
-        Whether to cache QAOA parameter optimisation runs.
-    cache_filename : str
-        Path for the cache file.
-    cache_save_every : int
-        Cache persistence frequency.
-
-    Returns
-    -------
-    dict
-        ``vertex``        – np.ndarray (n,), binary FW vertex
-        ``bitstring``     – str, same vertex as a bitstring
-        ``lmo_objective`` – float, value of grad^T s
-        ``distribution``  – dict, full sampling distribution
-        ``qaoa_energy``   – float, optimal QAOA energy
-        ``lmo_time``      – float, wall-clock seconds for this LMO call
+        Random seed for heuristic search.
+    max_exact_bits : int
+        Use brute-force if p <= this threshold.
+    num_random_samples : int
+        Number of random restarts in heuristic mode.
+    local_search_steps : int
+        Max local-improvement passes in heuristic mode.
     """
-    if optimization_params is None:
-        optimization_params = {"optimizer": "COBYLA", "tolerance": 1e-3}
-
     tic = time.perf_counter()
 
-    n = len(grad)
+    G = (G + G.T) / 2.0
+    p = G.shape[0]
 
-    # 1. Build the linear Hamiltonian for this FW iteration
-    lmo_hamiltonian = gradient_to_hamiltonian(grad)
+    if p <= max_exact_bits:
+        w, lmo_value = _solve_exact_bruteforce(G)
+        solve_mode = "exact"
+    else:
+        rng = np.random.default_rng(seed)
+        w, lmo_value = _solve_random_local_search(
+            G,
+            rng,
+            num_random_samples=num_random_samples,
+            local_search_steps=local_search_steps,
+        )
+        solve_mode = "heuristic"
 
-    # 2. Wrap the problem so QAOA circuits see the linear Hamiltonian
-    #    but still have access to constraint metadata
-    sub_problem = LinearSubproblem(problem, lmo_hamiltonian)
-
-    # 3. Build & transpile the QAOA circuit
-    qaoa = circuit_class(seed, sub_problem, n, num_layers, backend)
-    qaoa.get_parameterized_circuit()
-    tqc = qaoa.transpile()
-
-    # 4. Optimise QAOA parameters
-    optimal_params, optimal_energy, _, _, _ = parameter_optimization(
-        num_layers,
-        num_starting_points,
-        bounds,
-        optimization_params,
-        EstimatorV2,
-        num_estimator_shots,
-        backend,
-        tqc,
-        qaoa.hamiltonian,
-        use_cache,
-        cache_filename,
-        cache_save_every,
-    )
-
-    # 5. Sample the optimised circuit
-    gammas = optimal_params[num_layers:]
-    betas = optimal_params[:num_layers]
-    final_qc = qaoa.get_bound_circuit(gammas, betas)
-    distribution = sample_circuit(final_qc, backend, SamplerV2, num_sampler_shots)
-
-    # 6. Pick the best *feasible* bitstring that minimises grad^T s
-    best_bitstring = None
-    best_lmo_value = float("inf")
-
-    for bitstring in distribution:
-        if problem.is_feasible(bitstring)[0]:
-            s = np.array([int(b) for b in bitstring], dtype=float)
-            lmo_val = float(grad @ s)
-            if lmo_val < best_lmo_value:
-                best_lmo_value = lmo_val
-                best_bitstring = bitstring
-
-    # Fallback: no feasible sample → take the most frequent bitstring
-    if best_bitstring is None:
-        logger.warning("LMO: no feasible bitstring sampled; using most frequent")
-        best_bitstring = max(distribution, key=distribution.get)
-        s = np.array([int(b) for b in best_bitstring], dtype=float)
-        best_lmo_value = float(grad @ s)
-
-    vertex = np.array([int(b) for b in best_bitstring], dtype=float)
-
-    lmo_time = time.perf_counter() - tic
+    H = np.outer(w, w)
 
     return {
-        "vertex": vertex,
-        "bitstring": best_bitstring,
-        "lmo_objective": best_lmo_value,
-        "distribution": distribution,
-        "qaoa_energy": float(optimal_energy),
-        "lmo_time": lmo_time,
+        "w": w,
+        "bitstring": _bits_to_bitstring(w),
+        "vertex_matrix": H,
+        "lmo_objective": float(lmo_value),
+        "lmo_time": time.perf_counter() - tic,
+        "solve_mode": solve_mode,
     }

@@ -1,0 +1,25 @@
+seed: 12345
+output_folder: "./delme_solver"
+backend_name: null                     # [null, "<backend_name>"]
+is_backend_fake: True
+
+problem_class: "QGSUncProblem"        # [MaxCutProblem, QGSProblem, QGSUncProblem]
+problem_params:
+  n_nodes: 7                           # MaxCutProblem
+  density: 0.7                         # MaxCutProblem
+  num_groups: 5                        # QGSProblem
+  num_instruments_per_group: 3         # QGSProblem
+
+solver_class: "QFWSolver"
+circuit_class: "AncillaQAOACircuit"
+
+solver_params:
+  num_fw_iterations: 12
+  beta0: 1.0
+  dual_step_rule: "constant"
+  rounding_project: True
+  convergence_tol: 1.0e-4
+  lmo_params:
+    max_exact_bits: 22
+    num_random_samples: 2048
+    local_search_steps: 100

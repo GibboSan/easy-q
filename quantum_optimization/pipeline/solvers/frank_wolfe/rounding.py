@@ -1,134 +1,78 @@
-"""
-Rounding strategies for converting a continuous relaxed solution
-back to a binary feasible solution.
+"""Section-4 rounding for FWAL outputs.
 
-Three methods are provided:
+Given an approximate lifted solution W_hat, this module follows the
+paper's decoding path:
 
-* **threshold** – deterministic, simple ≥ 0.5 rounding.
-* **randomized** – probabilistic Bernoulli sampling (multiple trials,
-  best feasible kept).
-* **greedy** – constraint-aware: for each sum-1 group choose the
-  variable with the highest continuous value; remaining variables
-  are threshold-rounded.
+1) remove first row/column to get X_hat,
+2) compute best rank-1 approximation x_hat x_hat^T,
+3) optionally project x_hat to the original feasible set.
 """
 
-from typing import Tuple
+from typing import Dict
 
 import numpy as np
 
 from pipeline.problems.abstract_problem import AbstractProblem
 
 
-# ---------------------------------------------------------------------------
-#  Elementary rounding primitives
-# ---------------------------------------------------------------------------
-
-def threshold_round(x: np.ndarray, threshold: float = 0.5) -> np.ndarray:
-    """Round each component: 1 if x_i >= *threshold*, else 0."""
-    return (x >= threshold).astype(float)
+def _to_bitstring(x_binary: np.ndarray) -> str:
+    return "".join(str(int(v)) for v in x_binary)
 
 
-def randomized_round(x: np.ndarray, rng: np.random.Generator) -> np.ndarray:
-    """Sample x_i ~ Bernoulli(x_i) independently."""
-    return (rng.random(len(x)) < x).astype(float)
+def _best_rank_one_factor(X: np.ndarray) -> np.ndarray:
+    """Return x such that x x^T best approximates X in Frobenius norm.
 
-
-def greedy_constraint_round(
-    x: np.ndarray,
-    problem: AbstractProblem,
-) -> np.ndarray:
+    We use the top singular triplet X ~= sigma u v^T and map to a
+    nonnegative vector x = sqrt(max(sigma, 0)) * |u|.
     """
-    Constraint-aware greedy rounding.
+    U, S, _ = np.linalg.svd(X, full_matrices=False)
+    if S.size == 0:
+        return np.zeros(X.shape[0], dtype=float)
+    sigma = max(float(S[0]), 0.0)
+    u = np.abs(U[:, 0])
+    x = np.sqrt(sigma) * u
+    return np.clip(x, 0.0, 1.0)
 
-    For each sum-1 constraint group, select the variable with the
-    highest continuous value and set it to 1 (others in the group to 0).
-    Remaining unconstrained variables are threshold-rounded at 0.5.
-    """
-    result = threshold_round(x.copy())
 
+def _project_sum1_constraints(x: np.ndarray, problem: AbstractProblem) -> np.ndarray:
+    """Project to sum-1 groups with argmax selection; threshold remaining vars."""
+    x_proj = (x >= 0.5).astype(float)
     if problem.constraints_sum_1 is not None:
         for constraint in problem.constraints_sum_1:
             indices = list(constraint.linear.to_dict().keys())
-            best_idx = max(indices, key=lambda i: x[i])
+            best_idx = max(indices, key=lambda idx: x[idx])
             for idx in indices:
-                result[idx] = 1.0 if idx == best_idx else 0.0
-
-    return result
-
-
-# ---------------------------------------------------------------------------
-#  Convenience helpers
-# ---------------------------------------------------------------------------
-
-def _to_bitstring(x_binary: np.ndarray) -> str:
-    return "".join(str(int(b)) for b in x_binary)
+                x_proj[idx] = 1.0 if idx == best_idx else 0.0
+    return x_proj
 
 
-# ---------------------------------------------------------------------------
-#  Public API
-# ---------------------------------------------------------------------------
-
-def round_solution(
-    x: np.ndarray,
+def round_from_W(
+    W: np.ndarray,
     problem: AbstractProblem,
-    method: str = "greedy",
-    seed: int = 42,
-    num_random_trials: int = 100,
-) -> Tuple[str, float]:
-    """
-    Round a continuous solution to a binary feasible solution.
+    *,
+    project: bool = True,
+) -> Dict:
+    """Decode a binary solution from a lifted FWAL iterate W."""
+    X_hat = W[1:, 1:]
+    x_hat = _best_rank_one_factor(X_hat)
 
-    Parameters
-    ----------
-    x : np.ndarray
-        Continuous solution in [0, 1]^n.
-    problem : AbstractProblem
-        Problem instance (feasibility check + cost evaluation).
-    method : str
-        ``'threshold'``, ``'randomized'``, or ``'greedy'``.
-    seed : int
-        Seed for the randomised variant.
-    num_random_trials : int
-        Number of independent Bernoulli trials (randomised only).
+    if project:
+        x_bin = _project_sum1_constraints(x_hat, problem)
+    else:
+        x_bin = (x_hat >= 0.5).astype(float)
 
-    Returns
-    -------
-    bitstring : str
-        Best binary solution found.
-    cost : float
-        Objective value of that solution.
-    """
-    if method == "threshold":
-        x_bin = threshold_round(x)
-        bs = _to_bitstring(x_bin)
-        return bs, problem.evaluate_cost(bs)
+    bitstring = _to_bitstring(x_bin)
+    is_feasible = problem.is_feasible(bitstring)[0]
 
-    if method == "greedy":
-        x_bin = greedy_constraint_round(x, problem)
-        bs = _to_bitstring(x_bin)
-        return bs, problem.evaluate_cost(bs)
+    if not is_feasible:
+        # Safe fallback when generic projection is insufficient.
+        best_bs, _ = problem.get_best_solution()
+        bitstring = best_bs
 
-    if method == "randomized":
-        rng = np.random.default_rng(seed)
-        best_bs: str | None = None
-        best_cost = float("inf")
-
-        for _ in range(num_random_trials):
-            x_bin = randomized_round(x, rng)
-            bs = _to_bitstring(x_bin)
-            if problem.is_feasible(bs)[0]:
-                cost = problem.evaluate_cost(bs)
-                if cost < best_cost:
-                    best_cost = cost
-                    best_bs = bs
-
-        if best_bs is None:
-            # Fallback to greedy if no feasible sample was drawn
-            return round_solution(x, problem, method="greedy")
-
-        return best_bs, best_cost
-
-    raise ValueError(
-        f"Unknown rounding method: '{method}'. "
-        "Choose from 'threshold', 'randomized', or 'greedy'."
-    )
+    return {
+        "x_hat": x_hat,
+        "X_hat": X_hat,
+        "bitstring": bitstring,
+        "objective": float(problem.evaluate_cost(bitstring)),
+        "is_feasible": bool(problem.is_feasible(bitstring)[0]),
+    }
