@@ -1,4 +1,10 @@
-"""Initialization and lifted-variable extraction utilities for FWAL."""
+"""Initialization and lifted-variable extraction utilities for FWAL.
+
+Provides functions to build the initial primal iterate W_0, the initial
+dual iterate y_0, and to extract the original-space blocks x and X from
+the lifted matrix W (accounting for slack variables introduced by
+inequality constraint expansion).
+"""
 
 import numpy as np
 
@@ -11,8 +17,8 @@ def build_initial_primal_matrix(p: int, mode: str = "zeros") -> np.ndarray:
     p : int
         Lifted dimension.
     mode : str
-        ``"zeros"`` for W_0 = 0 (paper default in practice) or
-        ``"homogeneous"`` for W_0 = e_1 e_1^T.
+        ``"zeros"`` for W_0 = 0 (paper default) or ``"homogeneous"``
+        for W_0 = e_1 e_1^T.
     """
     if mode == "zeros":
         return np.zeros((p, p), dtype=float)
@@ -24,20 +30,31 @@ def build_initial_primal_matrix(p: int, mode: str = "zeros") -> np.ndarray:
 
 
 def build_initial_dual_vector(d: int) -> np.ndarray:
-    """Build the initial dual iterate y_0."""
+    """Build the initial dual iterate y_0 = 0."""
     return np.zeros(d, dtype=float)
 
 
-def extract_x_and_X_from_W(W: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Extract x and X blocks from the lifted matrix W.
+def extract_x_and_X_from_W(
+    W: np.ndarray, n_original: int
+) -> tuple:
+    """Extract original-space x and X from the lifted matrix W.
 
-    W is interpreted as:
+    Parameters
+    ----------
+    W : np.ndarray
+        Lifted matrix of shape (p, p).
+    n_original : int
+        Number of original binary variables (excluding slack bits).
 
-        [ 1   x^T ]
-        [ x    X  ]
+    Returns
+    -------
+    x : np.ndarray
+        Continuous relaxation of the original variable vector (length n_original).
+    X : np.ndarray
+        Corresponding (n_original x n_original) block of W.
     """
-    x = W[1:, 0].copy()
-    X = W[1:, 1:].copy()
+    x = W[1 : n_original + 1, 0].copy()
+    X = W[1 : n_original + 1, 1 : n_original + 1].copy()
     return x, X
 
 

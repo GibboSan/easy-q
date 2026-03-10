@@ -21,4 +21,15 @@ class AbstractSolver(ABC):
 
     @abstractmethod
     def solve(self) -> Dict[str, Any]:
+        """
+        Run the algorithm.
+
+        Returns
+        -------
+        dict
+            ``best_bitstring``          - str, best binary solution found
+            ``best_objective``          - float, its objective value
+            ``total_time``              - float, total wall-clock time in seconds
+        (other solver-specific keys may be included)
+        """
         pass

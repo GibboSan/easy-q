@@ -1,4 +1,11 @@
-"""FWAL schedules, diagnostics, and convergence tracking."""
+"""FWAL hyperparameter schedules, convergence diagnostics, and tracking.
+
+Implements the schedules from Yurtsever et al. (2022):
+
+  - Primal step size:    eta_t = 2 / (t + 1)          (Eq. 179)
+  - Penalty parameter:   beta_t = beta0 * sqrt(t + 1)  (Eq. 167)
+  - Dual step size:      gamma_t = beta0  (constant)    (Eq. 190)
+"""
 
 from dataclasses import dataclass, field
 from typing import List

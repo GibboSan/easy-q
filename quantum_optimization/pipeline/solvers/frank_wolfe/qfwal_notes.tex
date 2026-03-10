@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\section{Introduction}
+
+This document details the Quantum Frank-Wolfe Augmented Lagrangian (Q-FWAL) method for solving combinatorial optimization problems with constraints[cite: 149].
+
+\section{Problem Formulation}
+
+We consider a generic quadratic binary optimization (QBO) problem with affine equality constraints[cite: 107]:
+\begin{align}
+\min_{x \in \mathbb{Z}_2^n} \quad & x^\top Q x + 2 s^\top x \nonumber \\
+\text{subject to} \quad & a_i^\top x = b_i, \quad i = 1, \dots, m \label{eq:qbo}
+\end{align}
+where $x \in \mathbb{Z}_2^n$ is the binary decision variable [cite: 111], $Q \in \mathbb{R}^{n \times n}$ and $s \in \mathbb{R}^n$ are the cost coefficients [cite: 111], and $(a_i, b_i) \in \mathbb{R}^n \times \mathbb{R}$ define the constraints[cite: 111]. We assume $b_i \ge 0$ without loss of generality[cite: 112].
+
+To solve this problem, we first reformulate it into an equivalent copositive program (CP)[cite: 107]. By introducing a rank-one completely positive matrix $X = x x^\top \in \mathbb{Z}_2^{n \times n}$ [cite: 116], we can write $diag(X) = x$ [cite: 116] and the objective as $\text{Tr}(QX) + 2s^\top x$[cite: 117]. The constraints can be rewritten using $Tr(A_i X) = b_i^2$, where $A_i := a_i a_i^\top$[cite: 124]. The non-convex constraint $X = xx^\top$ for $x \in \mathbb{Z}_2^n$ [cite: 129] is relaxed to $diag(X) = x$ and $\begin{bmatrix} 1 & x^\top \\ x & X \end{bmatrix} \in \Delta^{n+1}$[cite: 130], where $\Delta^{n+1} := \text{conv}\{ \begin{bmatrix} 1 \\ x \end{bmatrix} \begin{bmatrix} 1 & x^\top \end{bmatrix} : x \in \mathbb{Z}_2^n \}$.
+
+This yields the tight CP relaxation[cite: 138]:
+\begin{align}
+\min_{x, X} \quad & \text{Tr}(QX) \nonumber \\
+\text{subject to} \quad & a_i^\top x = b_i, \quad i = 1, \dots, m \nonumber \\
+& \text{Tr}(A_i X) = b_i^2, \quad i = 1, \dots, m \nonumber \\
+& diag(X) = x \nonumber \\
+& \begin{bmatrix} 1 & x^\top \\ x & X \end{bmatrix} \in \Delta^{n+1} \label{eq:cp_full}
+\end{align}
+
+We can adopt a more compact notation. Let $p = n + 1$, $W = \begin{bmatrix} 1 & x^\top \\ x & X \end{bmatrix} \in \Delta^p$, and $C = \begin{bmatrix} 0 & s^\top \\ s & Q \end{bmatrix}$[cite: 141]. Let $\mathcal{A} : \mathbb{R}^{p \times p} \rightarrow \mathbb{R}^d$ and $v \in \mathbb{R}^d$ encompass all affine constraints, including $a_i^\top x = b_i$, $Tr(A_i X) = b_i^2$, $diag(X) = x$, and $W_{1,1} = 1$[cite: 142]. The problem becomes:
+\begin{align}
+\min_{W \in \Delta^p} \quad & \text{Tr}(CW) \nonumber \\
+\text{subject to} \quad & \mathcal{A}W = v \label{eq:cp_compact}
+\end{align}
+
+\subsection{Handling Inequality Constraints}
+
+While the standard formulation focuses on equality constraints, combinatorial problems often involve inequality constraints, such as $a_i^\top x \le b_i$. These can be incorporated into the framework using slack variables. 
+For each inequality $a_i^\top x \le b_i$, we introduce a non-negative slack variable $s_i \ge 0$, converting it to an equality constraint $a_i^\top x + s_i = b_i$.
+If the slack variables are bounded, $0 \le s_i \le U_i$, we can represent them using binary variables $y_{i,j}$ such that $s_i = \sum_j 2^j y_{i,j}$. The expanded set of binary variables $\tilde{x} = [x, y]$ can then be used in the standard Q-FWAL framework.
+The linear operator $\mathcal{A}$ and vector $v$ are augmented to include these new equality constraints. The FWAL iterations proceed exactly as before, updating the augmented Lagrangian with the new constraint terms. The rounding procedure at the end must then extract the solution $x$ from the combined variable $\tilde{x}$.
+
+\section{The Q-FWAL Algorithm}
+
+We solve \eqref{eq:cp_compact} using the Frank-Wolfe Augmented Lagrangian (FWAL) method[cite: 150]. We construct the augmented Lagrangian with dual variable $y \in \mathbb{R}^d$ and penalty parameter $\beta > 0$[cite: 151]:
+\begin{equation}
+L_\beta(W; y) = \text{Tr}(CW) + y^\top (\mathcal{A}W - v) + \frac{\beta}{2} ||\mathcal{A}W - v||^2, \quad \text{for } W \in \Delta^p \label{eq:aug_lag}
+\end{equation}
+The algorithm iteratively updates primal variable $W_t$ and dual variable $y_t$.
+
+\begin{algorithm}
+\caption{Q-FWAL for Constrained QBO}
+\begin{algorithmic}[1]
+\State \textbf{Initialize:} Choose $\beta_0 > 0$, $W_0 \in \Delta^p$, $y_0 \in \mathbb{R}^d$.
+\For{$t = 1, 2, \dots$}
+    \State Set penalty parameter $\beta_t = \beta_0 \sqrt{t+1}$[cite: 167].
+    \State \textbf{Primal Step:} Compute partial derivative of $L_{\beta_t}$ w.r.t $W$:
+    \State \quad $G_t = C + \mathcal{A}^\top y_t + \beta_t \mathcal{A}^\top (\mathcal{A} W_t - v)$[cite: 170].
+    \State \quad Find update direction by solving the linear minimization oracle:
+    \State \quad \quad $w_t \in \arg\min_{w \in \mathbb{Z}_2^p} w^\top G_t w$
+    \State \quad Set $H_t = w_t w_t^\top$[cite: 175].
+    \State \quad Update primal variable with step size $\eta_t = \frac{2}{t+1}$[cite: 179]:
+    \State \quad \quad $W_{t+1} = (1 - \eta_t)W_t + \eta_t H_t$[cite: 178].
+    \State \textbf{Dual Step:} Compute partial derivative of $L_{\beta_t}$ w.r.t $y$:
+    \State \quad $g_t = \mathcal{A} W_{t+1} - v$[cite: 184].
+    \State \quad Update dual variable with constant step size $\gamma_t = \beta_0$[cite: 190]:
+    \State \quad \quad $y_{t+1} = y_t + \gamma_t g_t$[cite: 186].
+\EndFor
+\State \textbf{Rounding:} Extract $\hat{W}$ and obtain a feasible solution for \eqref{eq:qbo}[cite: 202].
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Solving the Linear Minimization Oracle}
+
+The core of the primal step requires finding $w_t \in \arg\min_{w \in \mathbb{Z}_2^p} w^\top G_t w$. This is a standard, unconstrained Quadratic Unconstrained Binary Optimization (QUBO) problem[cite: 174]. 
+
+Because finding the exact minimum of a QUBO is NP-Hard[cite: 217], we can employ various solvers for this oracle:
+\begin{itemize}
+    \item \textbf{Quantum Annealing (QA):} AQC devices, such as D-Wave, map the QUBO to an Ising model and use quantum fluctuations to find near-optimal solutions[cite: 206].
+    \item \textbf{Quantum Approximate Optimization Algorithm (QAOA):} Gate-based quantum computers can use QAOA to approximate the solution to the QUBO.
+    \item \textbf{Classical Solvers:} For small instances, exact solvers (like branch-and-bound or exhaustive search) can be used. For larger instances, heuristic algorithms like Simulated Annealing (SA) can provide approximate solutions[cite: 255].
+\end{itemize}
+The choice of solver depends on the problem size and available computational resources.
+
+\subsection{Rounding Procedure}
+
+After running Q-FWAL, we obtain an approximate solution $\hat{W}$[cite: 202]. To extract a valid binary vector $x$ for the original problem \eqref{eq:qbo}:
+\begin{enumerate}
+    \item Extract $\hat{X}$ by removing the first row and column of $\hat{W}$[cite: 203].
+    \item Compute the best rank-one approximation $\tilde{x}\tilde{x}^\top$ of $\hat{X}$ using the Frobenius norm[cite: 204]. This typically involves finding the principal eigenvector of $\hat{X}$.
+    \item Project $\tilde{x}$ onto the feasible set of constraints defined in \eqref{eq:qbo}[cite: 204]. For example, if the constraints encode a permutation matrix, the Hungarian algorithm can be used for this projection[cite: 205].
+\end{enumerate}
+
+\section{Notes/References}
+\begin{itemize}
+\item Paper Citation: Yurtsever, A., Birdal, T., \& Golyanik, V. (2022). Q-FW: A Hybrid Classical-Quantum Frank-Wolfe for Quadratic Binary Optimization. \textit{ECCV 2022, LNCS 13683}, pp. 352-369. Springer Nature Switzerland AG. [cite: 2, 3, 4, 25, 26]
+\end{itemize}
+
+
+\end{document}
