@@ -44,7 +44,7 @@ from pipeline.solvers.frank_wolfe.relaxation import (
     build_initial_dual_vector,
     symmetrise,
 )
-from pipeline.solvers.frank_wolfe.linear_minimisation import create_lmo
+from pipeline.solvers.frank_wolfe.linear_minimisation import fwal_lmo
 from pipeline.solvers.frank_wolfe.rounding import round_from_W
 from pipeline.solvers.frank_wolfe.qfw_utils import (
     primal_step_size,
@@ -69,8 +69,8 @@ class QFWSolver(AbstractSolver):
         Quantum backend (real or simulator).
     seed : int
         Random seed.
-    circuit_class : type, optional
-        QAOA circuit class — forwarded to the QAOA LMO when selected.
+    circuit_class : str, optional
+        QAOA circuit class name — forwarded to the QAOA LMO when selected.
     num_fw_iterations : int
         Maximum Frank-Wolfe outer iterations (*T*).
     beta0 : float
@@ -82,9 +82,8 @@ class QFWSolver(AbstractSolver):
     convergence_tol : float
         Early-stop threshold for both FW gap and residual norm.
     lmo_params : dict, optional
-        Configuration forwarded to :func:`create_lmo`.  The ``"method"``
-        key selects the LMO backend (``"auto"``, ``"bruteforce"``,
-        ``"local_search"``, ``"cplex"``, ``"qaoa"``).
+        Configuration forwarded to :func:`fwal_lmo`.  The ``"method"``
+        key selects the LMO backend (``"classic"`` or ``"qaoa"``).
     """
 
     def __init__(
@@ -92,7 +91,7 @@ class QFWSolver(AbstractSolver):
         problem: AbstractProblem,
         backend: Backend,
         seed: int,
-        circuit_class: Optional[type] = None,
+        circuit_class: Optional[str] = None,
         num_fw_iterations: int = 10,
         beta0: float = 1.0,
         dual_step_rule: str = "constant",
@@ -128,13 +127,6 @@ class QFWSolver(AbstractSolver):
         self.n_expanded = self.model.n_expanded
         self.p = self.model.p
         self.d = len(self.model.rhs)
-
-        # Build LMO backend
-        self.lmo = create_lmo(
-            backend=backend,
-            circuit_class=circuit_class,
-            **self.lmo_params,
-        )
 
         self.tracker = ConvergenceTracker()
 
@@ -186,7 +178,13 @@ class QFWSolver(AbstractSolver):
             )
 
             # 2. LMO
-            lmo_result = self.lmo.solve(G, seed=self.seed + t)
+            lmo_result = fwal_lmo(
+                G,
+                seed=self.seed + t,
+                backend=self.backend,
+                circuit_class=self.circuit_class,
+                **self.lmo_params,
+            )
             H = lmo_result["vertex_matrix"]
 
             # 3. FW gap

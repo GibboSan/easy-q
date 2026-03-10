@@ -18,7 +18,6 @@ from qiskit_algorithms.utils import algorithm_globals
 from qiskit_ibm_runtime import EstimatorV2, SamplerV2
 
 from pipeline.problems.abstract_problem import AbstractProblem
-from pipeline.plotter import Plotter
 
 from pipeline.runtime import parameter_optimization, sample_circuit
 from pipeline.solvers.abstract_solver import AbstractSolver
@@ -28,7 +27,7 @@ from pipeline.utils import (
     compute_approximation_ratio,
     get_circuit_metrics,
 )
-from quantum_optimization.pipeline.plotter import Plotter
+from pipeline.plotter import Plotter
 
 logger = logging.getLogger("pipeline_logger")
 
