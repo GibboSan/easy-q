@@ -1,122 +1,138 @@
-"""Linear minimisation oracle for FWAL in lifted space.
+"""LMO factory and dispatcher for FWAL.
 
-The oracle solves (approximately):
+Provides :func:`create_lmo` to build an LMO backend from a configuration
+dictionary, and :func:`fwal_lmo` as a backward-compatible one-shot
+interface that creates and invokes the chosen LMO.
 
-    min_{w in {0,1}^p} w^T G w
+Available methods:
 
-and returns H = w w^T, which is an extreme point of Delta^p.
+- ``"auto"``          – brute-force if p <= *max_exact_bits*, else local search
+- ``"bruteforce"``    – exact enumeration (O(2^p), small problems only)
+- ``"local_search"``  – random restarts + 1-flip local improvement
+- ``"cplex"``         – IBM CPLEX via docplex
+- ``"qaoa"``          – QAOA on a quantum backend
 """
 
-import time
-from typing import Dict
+import logging
+from typing import Dict, Optional
 
 import numpy as np
+from qiskit.providers import Backend
+
+from pipeline.solvers.frank_wolfe.lmo import (
+    AbstractLMO,
+    BruteforceLMO,
+    LocalSearchLMO,
+    CplexLMO,
+    QAOALMO,
+)
+
+logger = logging.getLogger("pipeline_logger")
 
 
-def _objective_from_bits(G: np.ndarray, w: np.ndarray) -> float:
-    return float(w @ G @ w)
+# ------------------------------------------------------------------ #
+#   Factory
+# ------------------------------------------------------------------ #
 
 
-def _bits_to_bitstring(w: np.ndarray) -> str:
-    return "".join(str(int(v)) for v in w)
-
-
-def _solve_exact_bruteforce(G: np.ndarray) -> tuple[np.ndarray, float]:
-    p = G.shape[0]
-    best_w = np.zeros(p, dtype=float)
-    best_val = float("inf")
-    for mask in range(1 << p):
-        w = np.array([(mask >> i) & 1 for i in range(p)], dtype=float)
-        val = _objective_from_bits(G, w)
-        if val < best_val:
-            best_val = val
-            best_w = w
-    return best_w, best_val
-
-
-def _solve_random_local_search(
-    G: np.ndarray,
-    rng: np.random.Generator,
-    num_random_samples: int,
-    local_search_steps: int,
-) -> tuple[np.ndarray, float]:
-    p = G.shape[0]
-    best_w = rng.integers(0, 2, size=p).astype(float)
-    best_val = _objective_from_bits(G, best_w)
-
-    for _ in range(max(1, num_random_samples)):
-        w = rng.integers(0, 2, size=p).astype(float)
-        val = _objective_from_bits(G, w)
-
-        improved = True
-        steps = 0
-        while improved and steps < local_search_steps:
-            improved = False
-            steps += 1
-            for i in range(p):
-                w_try = w.copy()
-                w_try[i] = 1.0 - w_try[i]
-                val_try = _objective_from_bits(G, w_try)
-                if val_try + 1e-12 < val:
-                    w = w_try
-                    val = val_try
-                    improved = True
-
-        if val < best_val:
-            best_w = w
-            best_val = val
-
-    return best_w, best_val
-
-
-def fwal_lmo(
-    G: np.ndarray,
-    seed: int,
+def create_lmo(
+    method: str = "auto",
     *,
+    backend: Optional[Backend] = None,
+    circuit_class: Optional[type] = None,
+    # bruteforce / auto threshold
     max_exact_bits: int = 22,
+    # local search
     num_random_samples: int = 4096,
     local_search_steps: int = 200,
-) -> Dict:
-    """Solve the FWAL LMO and return H = w w^T.
+    # cplex
+    cplex_time_limit: float = 60.0,
+    # qaoa
+    qaoa_num_layers: int = 1,
+    qaoa_num_starting_points: int = 3,
+    qaoa_lower_bound: float = 0.0,
+    qaoa_upper_bound: float = 6.2832,
+    qaoa_optimization_params: Optional[dict] = None,
+    qaoa_num_estimator_shots: int = 1024,
+    qaoa_num_sampler_shots: int = 4096,
+    **_extra,
+) -> AbstractLMO:
+    """Build an LMO backend from keyword configuration.
 
     Parameters
     ----------
-    G : np.ndarray
-        Current FWAL gradient matrix.
-    seed : int
-        Random seed for heuristic search.
-    max_exact_bits : int
-        Use brute-force if p <= this threshold.
-    num_random_samples : int
-        Number of random restarts in heuristic mode.
-    local_search_steps : int
-        Max local-improvement passes in heuristic mode.
+    method : str
+        ``"auto"`` (default), ``"bruteforce"``, ``"local_search"``,
+        ``"cplex"``, or ``"qaoa"``.
     """
-    tic = time.perf_counter()
+    method = method.lower()
 
-    G = (G + G.T) / 2.0
-    p = G.shape[0]
+    if method == "bruteforce":
+        return BruteforceLMO()
 
-    if p <= max_exact_bits:
-        w, lmo_value = _solve_exact_bruteforce(G)
-        solve_mode = "exact"
-    else:
-        rng = np.random.default_rng(seed)
-        w, lmo_value = _solve_random_local_search(
-            G,
-            rng,
+    if method == "local_search":
+        return LocalSearchLMO(num_random_samples, local_search_steps)
+
+    if method == "cplex":
+        return CplexLMO(time_limit=cplex_time_limit)
+
+    if method == "qaoa":
+        if backend is None:
+            raise ValueError("QAOA LMO requires a quantum backend.")
+        if circuit_class is None:
+            raise ValueError("QAOA LMO requires a circuit_class.")
+        return QAOALMO(
+            backend=backend,
+            circuit_class=circuit_class,
+            num_layers=qaoa_num_layers,
+            num_starting_points=qaoa_num_starting_points,
+            lower_bound=qaoa_lower_bound,
+            upper_bound=qaoa_upper_bound,
+            optimization_params=qaoa_optimization_params,
+            num_estimator_shots=qaoa_num_estimator_shots,
+            num_sampler_shots=qaoa_num_sampler_shots,
+        )
+
+    if method == "auto":
+        return _AutoLMO(
+            max_exact_bits=max_exact_bits,
             num_random_samples=num_random_samples,
             local_search_steps=local_search_steps,
         )
-        solve_mode = "heuristic"
 
-    H = np.outer(w, w)
+    raise ValueError(f"Unknown LMO method: '{method}'")
 
-    return {
-        "w": w,
-        "bitstring": _bits_to_bitstring(w),
-        "vertex_matrix": H,
-        "lmo_objective": float(lmo_value),
-        "lmo_time": time.perf_counter() - tic,
-        "solve_mode": solve_mode,
-    }
+
+# ------------------------------------------------------------------ #
+#   Auto selector
+# ------------------------------------------------------------------ #
+
+
+class _AutoLMO(AbstractLMO):
+    """Auto-selects brute-force or local-search based on problem dimension."""
+
+    def __init__(self, max_exact_bits, num_random_samples, local_search_steps):
+        self._bf = BruteforceLMO()
+        self._ls = LocalSearchLMO(num_random_samples, local_search_steps)
+        self._threshold = max_exact_bits
+
+    def solve(self, G: np.ndarray, seed: int) -> Dict:
+        p = G.shape[0]
+        if p <= self._threshold:
+            return self._bf.solve(G, seed)
+        return self._ls.solve(G, seed)
+
+
+# ------------------------------------------------------------------ #
+#   Backward-compatible one-shot interface
+# ------------------------------------------------------------------ #
+
+
+def fwal_lmo(G: np.ndarray, seed: int, **lmo_params) -> Dict:
+    """Create an LMO from *lmo_params* and invoke it for *G*.
+
+    This function preserves the original call signature for scripts that
+    have not yet been migrated to the class-based LMO API.
+    """
+    lmo = create_lmo(**lmo_params)
+    return lmo.solve(G, seed)
