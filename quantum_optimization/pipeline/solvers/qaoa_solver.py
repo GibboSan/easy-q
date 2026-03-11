@@ -37,12 +37,10 @@ class QAOASolver(AbstractSolver):
 
     Parameters
     ----------
-    problem : AbstractProblem
-        The optimisation problem.
-    backend : Backend
-        Quantum backend (real or Aer simulator).
     seed : int
         Random seed.
+    backend : Backend
+        Quantum backend (real or Aer simulator).
     circuit_class : type
         QAOACircuit subclass to build the ansatz.
     num_layers : int
@@ -71,9 +69,8 @@ class QAOASolver(AbstractSolver):
 
     def __init__(
         self,
-        problem: AbstractProblem,
-        backend: Backend,
         seed: int,
+        backend: Backend,
         circuit_class: str,
         num_layers: int = 1,
         num_starting_points: int = 5,
@@ -89,7 +86,8 @@ class QAOASolver(AbstractSolver):
         **kwargs,
     ):
         logger.info(f"Initializing QAOASolver with seed {seed}")
-        super().__init__(problem=problem, backend=backend, seed=seed)
+        super().__init__(seed=seed)
+        self.backend = backend
         self.circuit_class = circuit_class
         self.num_layers = num_layers
         self.num_starting_points = num_starting_points
