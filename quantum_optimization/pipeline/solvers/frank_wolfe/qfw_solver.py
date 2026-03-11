@@ -26,9 +26,7 @@ search, CPLEX, or QAOA — selected through ``lmo_params["method"]``.
 
 import logging
 import time
-from typing import Dict, Optional
-
-from qiskit.providers import Backend
+from typing import Dict
 
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.solvers.abstract_solver import AbstractSolver
@@ -63,14 +61,11 @@ class QFWSolver(AbstractSolver):
 
     Parameters
     ----------
-    problem : AbstractProblem
-        The optimisation problem to solve.
-    backend : Backend
-        Quantum backend (real or simulator).
     seed : int
         Random seed.
-    circuit_class : str, optional
-        QAOA circuit class name — forwarded to the QAOA LMO when selected.
+    lmo_solver : AbstractSolver
+        Solver used for the LMO sub-problem at each FW iteration
+        (e.g. ``ClassicalSolver`` or ``QAOASolver``).
     num_fw_iterations : int
         Maximum Frank-Wolfe outer iterations (*T*).
     beta0 : float
@@ -81,60 +76,40 @@ class QFWSolver(AbstractSolver):
         Whether to apply constraint-aware projection during rounding.
     convergence_tol : float
         Early-stop threshold for both FW gap and residual norm.
-    lmo_params : dict, optional
-        Configuration forwarded to :func:`fwal_lmo`.  The ``"method"``
-        key selects the LMO backend (``"classic"`` or ``"qaoa"``).
     """
 
     def __init__(
         self,
-        problem: AbstractProblem,
-        backend: Backend,
         seed: int,
-        circuit_class: Optional[str] = None,
+        lmo_solver: AbstractSolver,
         num_fw_iterations: int = 10,
         beta0: float = 1.0,
         dual_step_rule: str = "constant",
         rounding_project: bool = True,
         convergence_tol: float = 1e-6,
-        lmo_params: Optional[dict] = None,
     ):
         super().__init__(
-            problem=problem,
-            backend=backend,
             seed=seed,
             solver_params={
-                "circuit_class": circuit_class,
                 "num_fw_iterations": num_fw_iterations,
                 "beta0": beta0,
                 "dual_step_rule": dual_step_rule,
                 "rounding_project": rounding_project,
                 "convergence_tol": convergence_tol,
-                "lmo_params": lmo_params or {},
             },
         )
-        self.circuit_class = circuit_class
+        self.lmo_solver = lmo_solver
         self.num_fw_iterations = num_fw_iterations
         self.beta0 = beta0
         self.dual_step_rule = dual_step_rule
         self.rounding_project = rounding_project
         self.convergence_tol = convergence_tol
-        self.lmo_params = lmo_params or {}
-
-        # Build lifted CP model (handles inequality → slack expansion)
-        self.model = build_cp_affine_model(problem)
-        self.n_original = self.model.n_original
-        self.n_expanded = self.model.n_expanded
-        self.p = self.model.p
-        self.d = len(self.model.rhs)
-
-        self.tracker = ConvergenceTracker()
 
     # ------------------------------------------------------------------ #
     #  Main loop
     # ------------------------------------------------------------------ #
 
-    def solve(self) -> Dict:
+    def solve(self, problem: AbstractProblem) -> Dict:
         """Run the FWAL algorithm in lifted CP space.
 
         Returns
@@ -144,20 +119,28 @@ class QFWSolver(AbstractSolver):
             ``continuous_solution``, ``num_iterations``, ``convergence``,
             ``total_time``, and solver diagnostics.
         """
+        # Build lifted CP model (handles inequality → slack expansion)
+        model = build_cp_affine_model(problem)
+        n_original = model.n_original
+        n_expanded = model.n_expanded
+        p = model.p
+        d = len(model.rhs)
+        tracker = ConvergenceTracker()
+
         logger.info(
             f"Starting Q-FW  T={self.num_fw_iterations}  "
             f"beta0={self.beta0}  dual_step={self.dual_step_rule}  "
-            f"n_orig={self.n_original}  n_exp={self.n_expanded}  "
-            f"p={self.p}  d={self.d}"
+            f"n_orig={n_original}  n_exp={n_expanded}  "
+            f"p={p}  d={d}"
         )
 
         tic_total = time.perf_counter()
 
         # ---- initialise --------------------------------------------------
-        W = build_initial_primal_matrix(self.p, mode="zeros")
-        y = build_initial_dual_vector(self.d)
+        W = build_initial_primal_matrix(p, mode="zeros")
+        y = build_initial_dual_vector(d)
         logger.info(
-            f"Initial Tr(CW0) = {evaluate_cp_objective(self.model.C, W):.6f}"
+            f"Initial Tr(CW0) = {evaluate_cp_objective(model.C, W):.6f}"
         )
 
         # ---- FW loop -----------------------------------------------------
@@ -169,9 +152,9 @@ class QFWSolver(AbstractSolver):
 
             # 1. Gradient
             G = compute_fwal_gradient(
-                self.model.C,
-                self.model.constraint_matrices,
-                self.model.rhs,
+                model.C,
+                model.constraint_matrices,
+                model.rhs,
                 W,
                 y,
                 beta_t,
@@ -181,9 +164,7 @@ class QFWSolver(AbstractSolver):
             lmo_result = fwal_lmo(
                 G,
                 seed=self.seed + t,
-                backend=self.backend,
-                circuit_class=self.circuit_class,
-                **self.lmo_params,
+                solver=self.lmo_solver,
             )
             H = lmo_result["vertex_matrix"]
 
@@ -197,15 +178,15 @@ class QFWSolver(AbstractSolver):
 
             # 5. Dual update
             residual = (
-                apply_affine_map(self.model.constraint_matrices, W)
-                - self.model.rhs
+                apply_affine_map(model.constraint_matrices, W)
+                - model.rhs
             )
             y = y + gamma_t * residual
 
             # 6. Record
-            cp_obj = evaluate_cp_objective(self.model.C, W)
+            cp_obj = evaluate_cp_objective(model.C, W)
             res_norm = residual_norm(residual)
-            self.tracker.record(
+            tracker.record(
                 cp_objective=cp_obj,
                 fw_gap=gap,
                 residual=res_norm,
@@ -234,8 +215,8 @@ class QFWSolver(AbstractSolver):
         logger.info("Rounding with Section-4 rank-1 decode")
         rounding = round_from_W(
             W,
-            self.problem,
-            self.n_original,
+            problem,
+            n_original,
             project=self.rounding_project,
         )
         best_bitstring = rounding["bitstring"]
@@ -244,12 +225,12 @@ class QFWSolver(AbstractSolver):
         X_hat = rounding["X_hat"]
 
         # Also inspect LMO vertices (extract original-variable bits only)
-        for lmo_bs in self.tracker.lmo_bitstrings:
-            if len(lmo_bs) < 1 + self.n_original:
+        for lmo_bs in tracker.lmo_bitstrings:
+            if len(lmo_bs) < 1 + n_original:
                 continue
-            bs = lmo_bs[1 : 1 + self.n_original]
-            if self.problem.is_feasible(bs)[0]:
-                cost = self.problem.evaluate_cost(bs)
+            bs = lmo_bs[1 : 1 + n_original]
+            if problem.is_feasible(bs)[0]:
+                cost = problem.evaluate_cost(bs)
                 if cost < best_objective:
                     logger.info(
                         f"LMO vertex {bs} (cost={cost}) beats "
@@ -260,7 +241,7 @@ class QFWSolver(AbstractSolver):
 
         total_time = time.perf_counter() - tic_total
 
-        classic_best = self.problem.get_best_solution()
+        classic_best = problem.get_best_solution()
         logger.info(
             f"Q-FW  -> bitstring={best_bitstring}, "
             f"objective={best_objective}"
@@ -277,8 +258,8 @@ class QFWSolver(AbstractSolver):
             "continuous_solution": x_hat.tolist(),
             "continuous_objective": float(best_objective),
             "rounding_method": "section4_rank1",
-            "num_iterations": len(self.tracker.cp_objective_values),
-            "convergence": self.tracker.summary(),
+            "num_iterations": len(tracker.cp_objective_values),
+            "convergence": tracker.summary(),
             "total_time": total_time,
             "classic_best_bitstring": classic_best[0],
             "classic_best_objective": classic_best[1],
@@ -286,8 +267,8 @@ class QFWSolver(AbstractSolver):
             "X_solution": X_hat.tolist(),
             "dual_solution": y.tolist(),
             "residual_norm": (
-                self.tracker.residual_norms[-1]
-                if self.tracker.residual_norms
+                tracker.residual_norms[-1]
+                if tracker.residual_norms
                 else None
             ),
             "seed": self.seed,
