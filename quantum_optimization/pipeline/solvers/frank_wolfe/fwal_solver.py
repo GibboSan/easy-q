@@ -20,8 +20,7 @@ The algorithm:
 Inequality constraints (<= / >=) are handled transparently via binary
 slack variables (see ``gradient.build_cp_affine_model``).
 
-The inner LMO can be served by several backends: brute-force, local
-search, CPLEX, or QAOA — selected through ``lmo_params["method"]``.
+The inner LMO calls existing solvers, including QAOASolver or ClassicalSolver.
 """
 
 import logging
@@ -44,7 +43,7 @@ from pipeline.solvers.frank_wolfe.relaxation import (
 )
 from pipeline.solvers.frank_wolfe.linear_minimisation import fwal_lmo
 from pipeline.solvers.frank_wolfe.rounding import round_from_W
-from pipeline.solvers.frank_wolfe.qfw_utils import (
+from quantum_optimization.pipeline.solvers.frank_wolfe.fwal_utils import (
     primal_step_size,
     penalty_parameter,
     dual_step_size,
@@ -56,8 +55,8 @@ from pipeline.solvers.frank_wolfe.qfw_utils import (
 logger = logging.getLogger("pipeline_logger")
 
 
-class QFWSolver(AbstractSolver):
-    """Quantum Frank-Wolfe Augmented Lagrangian (FWAL) solver.
+class FWALSolver(AbstractSolver):
+    """Frank-Wolfe Augmented Lagrangian (FWAL) solver.
 
     Parameters
     ----------
@@ -128,7 +127,7 @@ class QFWSolver(AbstractSolver):
         tracker = ConvergenceTracker()
 
         logger.info(
-            f"Starting Q-FW  T={self.num_fw_iterations}  "
+            f"FWALSolver:  T={self.num_fw_iterations}  "
             f"beta0={self.beta0}  dual_step={self.dual_step_rule}  "
             f"n_orig={n_original}  n_exp={n_expanded}  "
             f"p={p}  d={d}"
