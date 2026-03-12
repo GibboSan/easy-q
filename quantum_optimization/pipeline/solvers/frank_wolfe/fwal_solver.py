@@ -27,6 +27,8 @@ import logging
 import time
 from typing import Dict
 
+from pipeline.utils import class_importer
+
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.solvers.abstract_solver import AbstractSolver
 
@@ -62,9 +64,6 @@ class FWALSolver(AbstractSolver):
     ----------
     seed : int
         Random seed.
-    lmo_solver : AbstractSolver
-        Solver used for the LMO sub-problem at each FW iteration
-        (e.g. ``ClassicalSolver`` or ``QAOASolver``).
     num_fw_iterations : int
         Maximum Frank-Wolfe outer iterations (*T*).
     beta0 : float
@@ -75,34 +74,36 @@ class FWALSolver(AbstractSolver):
         Whether to apply constraint-aware projection during rounding.
     convergence_tol : float
         Early-stop threshold for both FW gap and residual norm.
+    plot_output_folder : Optional[str]
+        If not None, folder to save convergence plots.
+    lmo_solver_class : str
+        Class name of the solver to use for the LMO subproblems (e.g. QAOASolver or ClassicSolver).
+    lmo_solver_params : Dict
+        lmo_solver_class specific parameters.
     """
 
     def __init__(
         self,
         seed: int,
-        lmo_solver: AbstractSolver,
         num_fw_iterations: int = 10,
         beta0: float = 1.0,
         dual_step_rule: str = "constant",
         rounding_project: bool = True,
         convergence_tol: float = 1e-6,
+        plot_output_folder: str = "",
+        lmo_solver_class: str = 'ClassicalSolver',
+        lmo_solver_params: Dict = {},
     ):
-        super().__init__(
-            seed=seed,
-            solver_params={
-                "num_fw_iterations": num_fw_iterations,
-                "beta0": beta0,
-                "dual_step_rule": dual_step_rule,
-                "rounding_project": rounding_project,
-                "convergence_tol": convergence_tol,
-            },
-        )
-        self.lmo_solver = lmo_solver
+        logger.info(f"Initializing FWALSolver with seed {seed}")
+        super().__init__(seed=seed)
+        self.lmo_solver_class = lmo_solver_class
+        self.lmo_solver_params = lmo_solver_params
         self.num_fw_iterations = num_fw_iterations
         self.beta0 = beta0
         self.dual_step_rule = dual_step_rule
         self.rounding_project = rounding_project
         self.convergence_tol = convergence_tol
+        self.plot_output_folder = plot_output_folder
 
     # ------------------------------------------------------------------ #
     #  Main loop
@@ -132,7 +133,7 @@ class FWALSolver(AbstractSolver):
             f"beta0={self.beta0}  dual_step={self.dual_step_rule}  "
             f"n_orig={n_original}  n_exp={n_expanded}  "
             f"p={p}  d={d}"
-            f"LMO solver={type(self.lmo_solver).__name__}"
+            f"LMO solver={self.lmo_solver_class}"
         )
 
         tic_total = time.perf_counter()
@@ -162,10 +163,18 @@ class FWALSolver(AbstractSolver):
             )
 
             # 2. LMO
+            logger.info(f"Building solver {self.lmo_solver_class}")
+            LMOSolverClass = class_importer(
+                "pipeline.solvers", self.lmo_solver_class, compute_classfile_name=False,
+            )
+            params = dict(self.lmo_solver_params)
+            
+            lmo_solver = LMOSolverClass(seed=self.seed, **params)
+
             lmo_result = fwal_lmo(
                 G,
                 seed=self.seed + t,
-                solver=self.lmo_solver,
+                solver=lmo_solver,
             )
             H = lmo_result["vertex_matrix"]
 
@@ -242,6 +251,8 @@ class FWALSolver(AbstractSolver):
 
         total_time = time.perf_counter() - tic_total
 
+        # ---- Analysis ----------------------------------------------------
+
         classic_best = problem.get_best_solution()
 
         logger.info(
@@ -252,17 +263,20 @@ class FWALSolver(AbstractSolver):
             f"FWAL walltime: {total_time:.2f}s"
         )
 
+        # ---- Plotting ------------------------------------------------
+        if self.plot_output_folder:
+            pass  # todo
+
         return {
-            "best_bitstring": best_bitstring,
-            "best_objective": best_objective,
+            "classic_best_bitstring": classic_best[0],
+            "classic_best_objective": classic_best[1],
+            "solver_best_bitstring": best_bitstring,
+            "solver_best_objective": best_objective,
             "continuous_solution": x_hat.tolist(),
             "continuous_objective": float(best_objective),
             "rounding_method": "rank1_projection_rounding",
             "num_iterations": len(tracker.cp_objective_values),
             "convergence": tracker.summary(),
-            "total_time": total_time,
-            "classic_best_bitstring": classic_best[0],
-            "classic_best_objective": classic_best[1],
             "W_solution": W.tolist(),
             "X_solution": X_hat.tolist(),
             "dual_solution": y.tolist(),
@@ -271,5 +285,6 @@ class FWALSolver(AbstractSolver):
                 if tracker.residual_norms
                 else None
             ),
-            "seed": self.seed,
+            "solver_walltime": total_time,
+            "classic_walltime": problem.wall_time,
         }

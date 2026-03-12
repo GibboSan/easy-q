@@ -10,16 +10,44 @@ problem_params:
   num_groups: 5                        # QGSProblem
   num_instruments_per_group: 3         # QGSProblem
 
-solver_class: "QFWSolver"
-circuit_class: "AncillaQAOACircuit"
+# Generic solver entry point.
+# Valid examples: "FWALSolver", "QAOASolver", "ClassicalSolver"
+solver_class: "FWALSolver"
 
 solver_params:
+
+  # ---- FWALSolver params -------------------------------------------
   num_fw_iterations: 12
   beta0: 1.0
   dual_step_rule: "constant"
   rounding_project: True
   convergence_tol: 1.0e-4
-  lmo_params:
-    max_exact_bits: 22
-    num_random_samples: 2048
-    local_search_steps: 100
+  plot_output_folder: "./plots"
+
+  # Nested LMO solver config for FWALSolver.
+  # class: "ClassicalSolver" (default) or "QAOASolver"
+  lmo_solver_class: "ClassicalSolver"
+  lmo_solver_params: {}
+
+  # Example QAOA-based LMO config:
+  # lmo_solver_class: "QAOASolver"
+  # lmo_solver_params:
+  #   circuit_class: "AncillaQAOACircuit"
+  #   num_layers: 1
+  #   num_starting_points: 3
+  #   lower_bound: 0.0
+  #   upper_bound: 6.2832
+  #   num_estimator_shots: 1024
+  #   num_sampler_shots: 2048
+
+# Example direct QAOASolver setup:
+# solver_class: "QAOASolver"
+# solver_params:
+#   circuit_class: "AncillaQAOACircuit"
+#   num_layers: 2
+#   num_starting_points: 5
+#   lower_bound: 0.0
+#   upper_bound: 6.2832
+#   num_estimator_shots: 1024
+#   num_sampler_shots: 4096
+#   plot_output_folder: "./plots"
