@@ -189,6 +189,8 @@ class QAOASolver(AbstractSolver):
         )
         circuit_sampling_time = time.perf_counter() - tic
 
+        total_time = time.perf_counter() - tic_total
+
         # ---- Analysis ---------------------------------------------------
         classic_best = problem.get_best_solution()
         (
@@ -214,8 +216,6 @@ class QAOASolver(AbstractSolver):
             circuit_sampling_time,
         ])
 
-        total_time = time.perf_counter() - tic_total
-
         logger.info(
             f"QAOASolver: /n "
             f"Classic optimal solution: {classic_best}\n"
@@ -226,8 +226,7 @@ class QAOASolver(AbstractSolver):
             f"QAOA walltime: {total_time:.2f}s"
         )
 
-        # ---- Plotting
-        # ------------------------------------------------
+        # ---- Plotting ------------------------------------------------
         if self.plot_output_folder is not None:
             logger.info(f"QAOASolver: saving plots to {self.plot_output_folder}")
             plotter = Plotter(f"{self.plot_output_folder}")
@@ -253,9 +252,14 @@ class QAOASolver(AbstractSolver):
         logger.info("QAOASolver: terminated.")
 
         return {
-            "best_bitstring": quantum_best[0],
-            "best_objective": quantum_best[1] if quantum_best[0] else None,
-            "best_frequency": quantum_best[2],
+            "virtual_qubits": qc_metrics["num_active_qubits"],
+            "physical_qubits": tqc_metrics["num_active_qubits"],
+            "classic_best_bitstring": classic_best[0],
+            "classic_best_objective": classic_best[1],
+            "classic_best_status": problem.status,
+            "solver_best_bitstring": quantum_best[0],
+            "solver_best_objective": quantum_best[1] if quantum_best[0] else None,
+            "solver_best_frequency": quantum_best[2],
             "most_frequent_bitstring": most_frequent[0],
             "most_frequent_objective": most_frequent[1],
             "most_frequent_frequency": most_frequent[2],
@@ -265,11 +269,6 @@ class QAOASolver(AbstractSolver):
             "optimal_parameters": list(optimal_params),
             "optimal_estimator_energy": float(optimal_energy),
             "optimization_nfev": int(optimal_nfev),
-            "classic_best_bitstring": classic_best[0],
-            "classic_best_objective": classic_best[1],
-            "classic_walltime": problem.wall_time,
-            "virtual_qubits": qc_metrics["num_active_qubits"],
-            "physical_qubits": tqc_metrics["num_active_qubits"],
             "virtual_depth": qc.depth(),
             "transpiled_depth": tqc.depth(),
             "circuit_creation_time": circuit_creation_time,
@@ -277,5 +276,7 @@ class QAOASolver(AbstractSolver):
             "circuit_optimization_time": circuit_optimization_time,
             "circuit_bounding_time": circuit_bounding_time,
             "circuit_sampling_time": circuit_sampling_time,
-            "total_time": quantum_walltime
+            "quantum_walltime": quantum_walltime,
+            "solver_walltime": total_time,
+            "classic_walltime": problem.wall_time,
         }
