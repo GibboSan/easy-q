@@ -257,7 +257,7 @@ class FWALSolver(AbstractSolver):
             "best_objective": best_objective,
             "continuous_solution": x_hat.tolist(),
             "continuous_objective": float(best_objective),
-            "rounding_method": "section4_rank1",
+            "rounding_method": "rank1_projection_rounding",
             "num_iterations": len(tracker.cp_objective_values),
             "convergence": tracker.summary(),
             "total_time": total_time,
