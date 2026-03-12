@@ -1,4 +1,4 @@
-"""Section-4 rounding for FWAL outputs.
+"""Rank1 Projection Rounding for FWAL outputs.
 
 Given an approximate lifted solution W, this module follows the paper's
 decoding path:
