@@ -127,10 +127,12 @@ class FWALSolver(AbstractSolver):
         tracker = ConvergenceTracker()
 
         logger.info(
-            f"FWALSolver:  T={self.num_fw_iterations}  "
+            f"FWALSolver:/n"
+            f"T={self.num_fw_iterations}  "
             f"beta0={self.beta0}  dual_step={self.dual_step_rule}  "
             f"n_orig={n_original}  n_exp={n_expanded}  "
             f"p={p}  d={d}"
+            f"LMO solver={type(self.lmo_solver).__name__}"
         )
 
         tic_total = time.perf_counter()
@@ -241,15 +243,14 @@ class FWALSolver(AbstractSolver):
         total_time = time.perf_counter() - tic_total
 
         classic_best = problem.get_best_solution()
+
         logger.info(
-            f"Q-FW  -> bitstring={best_bitstring}, "
-            f"objective={best_objective}"
+            f"FWALSolver: /n "
+            f"Classic optimal solution: {classic_best}\n"
+            f"FWAL best solution: ({best_bitstring}, {best_objective})\n"
+            f"Classic walltime: {problem.wall_time:.2f}s [{problem.status}]\n"
+            f"FWAL walltime: {total_time:.2f}s"
         )
-        logger.info(
-            f"Classic -> bitstring={classic_best[0]}, "
-            f"objective={classic_best[1]}"
-        )
-        logger.info(f"Total Q-FW time: {total_time:.2f}s")
 
         return {
             "best_bitstring": best_bitstring,

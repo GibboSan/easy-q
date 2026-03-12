@@ -80,11 +80,11 @@ def round_from_W(
     Returns
     -------
     dict
-        ``x_hat``       – continuous relaxation (before rounding)
-        ``X_hat``       – original-variable block of W
-        ``bitstring``   – rounded binary string
-        ``objective``   – cost of the rounded solution
-        ``is_feasible`` – whether the rounded solution is feasible
+        ``x_hat``       - continuous relaxation (before rounding)
+        ``X_hat``       - original-variable block of W
+        ``bitstring``   - rounded binary string
+        ``objective``   - cost of the rounded solution
+        ``is_feasible`` - whether the rounded solution is feasible
     """
     X_hat = W[1 : n_original + 1, 1 : n_original + 1]
     x_hat = _best_rank_one_factor(X_hat)
