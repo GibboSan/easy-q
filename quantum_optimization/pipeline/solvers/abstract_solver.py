@@ -10,10 +10,12 @@ class AbstractSolver(ABC):
     def __init__(
         self,
         seed: int,
+        backend: Optional[Backend] = None,
         output_folder: Optional[str] = None,
         solver_params: Optional[Dict[str, Any]] = None,
     ):
         self.seed = seed
+        self.backend = backend
         self.output_folder = output_folder or ""
         self.solver_params = solver_params or {}
 
