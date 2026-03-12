@@ -22,7 +22,6 @@ solver_params:
   dual_step_rule: "constant"
   rounding_project: True
   convergence_tol: 1.0e-4
-  plot_output_folder: "solver_plots"
 
   # Nested LMO solver config for FWALSolver.
   # class: "ClassicalSolver" (default) or "QAOASolver"
@@ -50,4 +49,3 @@ solver_params:
 #   upper_bound: 6.2832
 #   num_estimator_shots: 1024
 #   num_sampler_shots: 4096
-#   plot_output_folder: "solver_plots"
