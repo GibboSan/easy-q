@@ -261,11 +261,11 @@ class FWALSolver(AbstractSolver):
         classic_best = problem.get_best_solution()
 
         logger.info(
-            f"FWALSolver: \n "
+            f"FWALSolver: \n"
             f"Classic optimal solution: {classic_best}\n"
-            f"FWAL best solution: ({best_bitstring}, {best_objective})\n"
+            f"FWAL best solution:       ({best_bitstring}, {best_objective})\n"
             f"Classic walltime: {problem.wall_time:.2f}s [{problem.status}]\n"
-            f"FWAL walltime: {total_time:.2f}s"
+            f"FWAL walltime:    {total_time:.2f}s"
         )
 
         # ---- Plotting ------------------------------------------------
