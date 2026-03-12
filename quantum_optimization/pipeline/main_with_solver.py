@@ -58,7 +58,8 @@ def single_run_with_solver(parameter_dict: dict) -> dict:
     params = dict(solver_params)
     
     solver: AbstractSolver = SolverClass(
-        seed=seed, 
+        seed=seed,
+        backend=backend,
         output_folder=output_folder, 
         **params
     )

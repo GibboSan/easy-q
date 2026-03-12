@@ -25,12 +25,14 @@ The inner LMO calls existing solvers, including QAOASolver or ClassicalSolver.
 
 import logging
 import time
-from typing import Dict
+from typing import Dict, Optional
 
 from pipeline.utils import class_importer
 
 from pipeline.problems.abstract_problem import AbstractProblem
 from pipeline.solvers.abstract_solver import AbstractSolver
+
+from qiskit.providers import Backend
 
 from pipeline.solvers.frank_wolfe.gradient import (
     build_cp_affine_model,
@@ -45,7 +47,7 @@ from pipeline.solvers.frank_wolfe.relaxation import (
 )
 from pipeline.solvers.frank_wolfe.linear_minimisation import fwal_lmo
 from pipeline.solvers.frank_wolfe.rounding import round_from_W
-from quantum_optimization.pipeline.solvers.frank_wolfe.fwal_utils import (
+from pipeline.solvers.frank_wolfe.fwal_utils import (
     primal_step_size,
     penalty_parameter,
     dual_step_size,
@@ -64,6 +66,8 @@ class FWALSolver(AbstractSolver):
     ----------
     seed : int
         Random seed.
+    backend : Backend
+        Qiskit backend for LMO calls (if using a quantum LMO solver).
     output_folder: str
         Folder to write solver outputs (e.g. convergence logs, plots).
     num_fw_iterations : int
@@ -85,6 +89,7 @@ class FWALSolver(AbstractSolver):
     def __init__(
         self,
         seed: int,
+        backend: Optional[Backend] = None,
         output_folder: str = "",
         num_fw_iterations: int = 10,
         beta0: float = 1.0,
@@ -128,7 +133,7 @@ class FWALSolver(AbstractSolver):
         tracker = ConvergenceTracker()
 
         logger.info(
-            f"FWALSolver:/n"
+            f"FWALSolver:\n"
             f"T={self.num_fw_iterations}  "
             f"beta0={self.beta0}  dual_step={self.dual_step_rule}  "
             f"n_orig={n_original}  n_exp={n_expanded}  "
@@ -209,7 +214,7 @@ class FWALSolver(AbstractSolver):
             )
 
             logger.info(
-                f"  Tr(CW)={cp_obj:.6f}  gap={gap:.6f}  "
+                f"Tr(CW)={cp_obj:.6f}  gap={gap:.6f}  "
                 f"res={res_norm:.3e}  eta={eta_t:.4f}  beta={beta_t:.4f}"
             )
 
@@ -256,7 +261,7 @@ class FWALSolver(AbstractSolver):
         classic_best = problem.get_best_solution()
 
         logger.info(
-            f"FWALSolver: /n "
+            f"FWALSolver: \n "
             f"Classic optimal solution: {classic_best}\n"
             f"FWAL best solution: ({best_bitstring}, {best_objective})\n"
             f"Classic walltime: {problem.wall_time:.2f}s [{problem.status}]\n"
