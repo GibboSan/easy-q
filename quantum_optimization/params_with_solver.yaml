@@ -3,20 +3,17 @@ output_folder: "./delme_solver"
 backend_name: null                     # [null, "<backend_name>"]
 is_backend_fake: True
 
-problem_class: "QGSUncProblem"        # [MaxCutProblem, QGSProblem, QGSUncProblem]
+# Problem ["MaxCutProblem", "QGSProblem", "QGSUncProblem"]
+problem_class: "QGSProblem"
 problem_params:
   n_nodes: 7                           # MaxCutProblem
   density: 0.7                         # MaxCutProblem
   num_groups: 5                        # QGSProblem
-  num_instruments_per_group: 3         # QGSProblem
+  num_instruments_per_group: 5         # QGSProblem
 
-# Generic solver entry point.
-# Valid examples: "FWALSolver", "QAOASolver", "ClassicalSolver"
+# Solver ["FWALSolver", "QAOASolver", "ClassicalSolver"]
 solver_class: "FWALSolver"
-
 solver_params:
-
-  # ---- FWALSolver params -------------------------------------------
   num_fw_iterations: 12
   beta0: 1.0
   dual_step_rule: "constant"
@@ -24,7 +21,6 @@ solver_params:
   convergence_tol: 1.0e-4
 
   # Nested LMO solver config for FWALSolver.
-  # class: "ClassicalSolver" (default) or "QAOASolver"
   lmo_solver_class: "ClassicalSolver"
   lmo_solver_params: {}
 
