@@ -8,8 +8,8 @@ problem_class: "QGSProblem"
 problem_params:
   n_nodes: 7                           # MaxCutProblem
   density: 0.7                         # MaxCutProblem
-  num_groups: 5                        # QGSProblem
-  num_instruments_per_group: 5         # QGSProblem
+  num_groups: 3                        # QGSProblem
+  num_instruments_per_group: 3         # QGSProblem
 
 # Solver ["FWALSolver", "QAOASolver", "ClassicalSolver"]
 

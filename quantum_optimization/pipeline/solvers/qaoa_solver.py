@@ -217,7 +217,7 @@ class QAOASolver(AbstractSolver):
         ])
 
         logger.info(
-            f"QAOASolver: \n "
+            f"QAOASolver: \n"
             f"Classic optimal solution: {classic_best}\n"
             f"QAOA best solution:       {quantum_best}\n"
             f"Most frequent solution: ('{most_frequent[0]}', {most_frequent[1]}) with frequency {most_frequent[2]}\n"
