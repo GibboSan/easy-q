@@ -64,6 +64,8 @@ class FWALSolver(AbstractSolver):
     ----------
     seed : int
         Random seed.
+    output_folder: str
+        Folder to write solver outputs (e.g. convergence logs, plots).
     num_fw_iterations : int
         Maximum Frank-Wolfe outer iterations (*T*).
     beta0 : float
@@ -74,8 +76,6 @@ class FWALSolver(AbstractSolver):
         Whether to apply constraint-aware projection during rounding.
     convergence_tol : float
         Early-stop threshold for both FW gap and residual norm.
-    plot_output_folder : Optional[str]
-        If not None, folder to save convergence plots.
     lmo_solver_class : str
         Class name of the solver to use for the LMO subproblems (e.g. QAOASolver or ClassicSolver).
     lmo_solver_params : Dict
@@ -85,6 +85,7 @@ class FWALSolver(AbstractSolver):
     def __init__(
         self,
         seed: int,
+        output_folder: str = "",
         num_fw_iterations: int = 10,
         beta0: float = 1.0,
         dual_step_rule: str = "constant",
@@ -95,7 +96,7 @@ class FWALSolver(AbstractSolver):
         lmo_solver_params: Dict = {},
     ):
         logger.info(f"Initializing FWALSolver with seed {seed}")
-        super().__init__(seed=seed)
+        super().__init__(seed=seed, output_folder=output_folder)
         self.lmo_solver_class = lmo_solver_class
         self.lmo_solver_params = lmo_solver_params
         self.num_fw_iterations = num_fw_iterations
@@ -103,7 +104,6 @@ class FWALSolver(AbstractSolver):
         self.dual_step_rule = dual_step_rule
         self.rounding_project = rounding_project
         self.convergence_tol = convergence_tol
-        self.plot_output_folder = plot_output_folder
 
     # ------------------------------------------------------------------ #
     #  Main loop
@@ -264,7 +264,7 @@ class FWALSolver(AbstractSolver):
         )
 
         # ---- Plotting ------------------------------------------------
-        if self.plot_output_folder:
+        if self.output_folder:
             pass  # todo
 
         return {

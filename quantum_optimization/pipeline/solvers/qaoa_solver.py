@@ -10,6 +10,7 @@ This solver can be used standalone to solve any ``AbstractProblem``.
 
 import logging
 import time
+import os
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -39,6 +40,8 @@ class QAOASolver(AbstractSolver):
     ----------
     seed : int
         Random seed.
+    output_folder: str
+        Folder to write solver outputs (e.g. convergence logs, plots).
     backend : Backend
         Quantum backend (real or Aer simulator).
     circuit_class : type
@@ -63,8 +66,6 @@ class QAOASolver(AbstractSolver):
         Path for the cache YAML file.
     cache_save_every : int
         Save cache every N evaluations.
-    plot_output_folder : str
-        If not None, folder to save output plots (circuit, parameter optimisation convergence, bitstring distribution).
     """
 
     def __init__(
@@ -82,11 +83,11 @@ class QAOASolver(AbstractSolver):
         use_cache: bool = False,
         cache_filename: str = "qaoa_cache.yaml",
         cache_save_every: int = 1,
-        plot_output_folder: Optional[str] = None,
+        output_folder: str = "",
         **kwargs,
     ):
         logger.info(f"Initializing QAOASolver with seed {seed}")
-        super().__init__(seed=seed)
+        super().__init__(seed=seed, output_folder=output_folder)
         self.backend = backend
         self.circuit_class = circuit_class
         self.num_layers = num_layers
@@ -102,7 +103,6 @@ class QAOASolver(AbstractSolver):
         self.use_cache = use_cache
         self.cache_filename = cache_filename
         self.cache_save_every = cache_save_every
-        self.plot_output_folder = plot_output_folder
     # ------------------------------------------------------------------ #
 
     def solve(self, problem: AbstractProblem) -> Dict[str, Any]:
@@ -227,9 +227,10 @@ class QAOASolver(AbstractSolver):
         )
 
         # ---- Plotting ------------------------------------------------
-        if self.plot_output_folder is not None:
-            logger.info(f"QAOASolver: saving plots to {self.plot_output_folder}")
-            plotter = Plotter(f"{self.plot_output_folder}")
+        if self.output_folder:
+            output_folder = os.path.join(self.output_folder, "plots")
+            logger.info(f"QAOASolver: saving plots to {output_folder}")
+            plotter = Plotter(f"{output_folder}")
 
             plotter.draw_circuit(final_qc, "circuit.png")
             plotter.plot_parameter_optimization(

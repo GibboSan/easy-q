@@ -57,7 +57,11 @@ def single_run_with_solver(parameter_dict: dict) -> dict:
     )
     params = dict(solver_params)
     
-    solver = SolverClass(seed=seed, **params)
+    solver: AbstractSolver = SolverClass(
+        seed=seed, 
+        output_folder=output_folder, 
+        **params
+    )
 
     # ---- Run ---------------------------------------------------------
     logger.info("Running solver")
@@ -71,5 +75,5 @@ def single_run_with_solver(parameter_dict: dict) -> dict:
         "solver_class": solver_class,
         "backend": backend_name,
         "logic_qubits": num_qubits,
-        "solver_output": solver_output,
+        **solver_output,
     }
