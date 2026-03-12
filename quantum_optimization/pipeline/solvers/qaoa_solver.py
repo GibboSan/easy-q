@@ -220,7 +220,7 @@ class QAOASolver(AbstractSolver):
             f"QAOASolver: \n"
             f"Classic optimal solution: {classic_best}\n"
             f"QAOA best solution:       {quantum_best}\n"
-            f"Most frequent solution: ('{most_frequent[0]}', {most_frequent[1]}) with frequency {most_frequent[2]}\n"
+            f"Most frequent solution:   ('{most_frequent[0]}', {most_frequent[1]}, {most_frequent[2]})\n"
             f"Classic walltime: {problem.wall_time:.2f}s [{problem.status}]\n"
             f"Quantum walltime: {quantum_walltime:.2f}s\n"
             f"QAOA walltime:    {total_time:.2f}s"
