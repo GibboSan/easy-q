@@ -17,6 +17,11 @@ Formal formulation
     subject to sum_{m in M} x_{m,p} = 1,  for all p in P
                sum_{p in P} x_{m,p} <= k, for all m in M
                x_{m,p} in {0,1},          for all m in M, p in P.
+
+Problem params
+- num_machines: int, number of machines in the problem instance.
+- num_products: int, number of products in the problem instance.
+
 '''
 
 import itertools
