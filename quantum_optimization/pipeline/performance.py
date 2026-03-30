@@ -9,6 +9,17 @@ from qiskit_aer.primitives import EstimatorV2 as AerEstimator
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_aer.noise import NoiseModel
 from qiskit.transpiler import PassManager
+
+# Compatibility shim for qiskit_ibm_runtime expecting calc_final_ops in qiskit
+from qiskit.transpiler.passes.utils import remove_final_measurements as _rfm
+if not hasattr(_rfm, "calc_final_ops"):
+    def calc_final_ops(dag, final_op_names):
+        final_ops = _rfm.RemoveFinalMeasurements()._calc_final_ops(dag)
+        names = set(final_op_names)
+        return [node for node in final_ops if getattr(node, "name", None) in names]
+
+    _rfm.calc_final_ops = calc_final_ops
+
 from qiskit_ibm_runtime.transpiler.passes import ConvertISAToClifford
 from qiskit_ibm_runtime.debug_tools import Neat
 
