@@ -17,6 +17,10 @@ Formal formulation
     subject to sum_{m in M} x_{m,p} = 1,    for all p in P
                sum_{p in P} x_{m,p} <= N_m, for all m in M
                x_{m,p} in {0,1},            for all m in M, p in P.
+
+Problem params
+- size: str, one of "small", "medium", "large". Determines the size of the problem instance.
+
 '''
 
 import itertools
