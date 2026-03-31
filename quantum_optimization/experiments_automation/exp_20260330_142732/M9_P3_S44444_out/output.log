@@ -1,0 +1,28 @@
+[2026-03-30 15:21:29,468] INFO: reading parameters file: 'M9_P3_S44444/M9_P3_S44444.yaml'
+[2026-03-30 15:21:29,474] INFO: Using seed 44444
+[2026-03-30 15:21:29,474] INFO: Output will be written in M9_P3_S44444_out
+[2026-03-30 15:21:29,475] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-30 15:21:42,522] INFO: Building SimpleProductionPlanningProblem
+[2026-03-30 15:21:42,727] INFO: The problem has 27 logic qubits
+[2026-03-30 15:21:42,736] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-30 15:21:42,767] INFO: Getting virtual circuit metrics
+[2026-03-30 15:21:42,787] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-30 15:21:43,658] INFO: Getting transpiled circuit metrics
+[2026-03-30 15:21:43,891] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-30 15:21:43,894] INFO: Preparing Hamiltonian for Estimator
+[2026-03-30 15:21:43,895] INFO: Clifford Noise Analysis with NEAT
+[2026-03-30 15:21:46,094] INFO: Virtual QC Metrics:    {'depth': 154, '2q_gates': 1125, 'clifford_gates': 54, 'non_clifford_gates': 1158, 't_gates': 0, 'total_gates': 1212, 'num_active_qubits': 30}
+[2026-03-30 15:21:46,094] INFO: Transpiled QC Metrics: {'depth': 3219, '2q_gates': 4702, 'clifford_gates': 19807, 'non_clifford_gates': 2003, 't_gates': 3, 'total_gates': 21810, 'num_active_qubits': 30}
+[2026-03-30 15:21:46,094] INFO: Clifford QC Metrics:   {'depth': 1119, '2q_gates': 1901, 'clifford_gates': 7624, 'non_clifford_gates': 40, 't_gates': 0, 'total_gates': 7664, 'num_active_qubits': 30}
+[2026-03-30 15:21:46,094] INFO: Ideal simulation run on Clifford circuit
+[2026-03-30 15:21:47,046] INFO: Noisy simulation run on Clifford circuit
+[2026-03-30 15:21:47,046] INFO: Full noise simulation run on Clifford circuit
+[2026-03-30 15:22:21,469] INFO: Clifford Ideal Estimator Value:  -166818.3359375
+[2026-03-30 15:22:21,470] INFO: Clifford Noisy Estimator Value:  -157485.8388671875
+[2026-03-30 15:22:21,470] INFO: Circuit creation time:       0.0306 seconds
+[2026-03-30 15:22:21,470] INFO: Transpilation time:          0.8705 seconds
+[2026-03-30 15:22:21,470] INFO: Clifford Transpilation time: 0.7741 seconds
+[2026-03-30 15:22:21,470] INFO: Clifford Ideal Estimation time:  0.9523 seconds
+[2026-03-30 15:22:21,470] INFO: Clifford Noisy Estimation time:  34.4227 seconds
+[2026-03-30 15:22:21,470] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-30 15:22:21,481] INFO: writing output file: M9_P3_S44444_out/output.json
