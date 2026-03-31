@@ -1,0 +1,27 @@
+seed: 11111
+output_folder: M5_P5_S11111_out
+backend_name: ibm_torino
+is_backend_fake: true
+problem_class: SimpleProductionPlanningProblem
+problem_params:
+  num_machines: 5
+  num_products: 5
+circuit_class: AncillaQAOACircuit
+num_layers: 3
+num_estimator_shots: 100000
+num_starting_points: 1
+lower_bound: 0.0
+upper_bound: 3.15
+optimization_params:
+  optimizer: SPSA
+  tolerance: 0.1
+  maxiter: 1
+  learning_rate: 0.1
+  perturbation: 0.1
+use_cache: false
+cache_filename: M5_P5_S11111_out/cache.yaml
+cache_save_every: 1
+num_sampler_shots: 100000
+performance:
+  only_clifford: true
+  pruned_noise: false

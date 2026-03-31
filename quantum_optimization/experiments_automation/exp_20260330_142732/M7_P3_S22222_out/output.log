@@ -1,0 +1,28 @@
+[2026-03-30 12:53:58,765] INFO: reading parameters file: 'M7_P3_S22222/M7_P3_S22222.yaml'
+[2026-03-30 12:53:58,769] INFO: Using seed 22222
+[2026-03-30 12:53:58,769] INFO: Output will be written in M7_P3_S22222_out
+[2026-03-30 12:53:58,770] INFO: Building backend ibm_torino (AerSimulator)
+[2026-03-30 12:54:08,739] INFO: Building SimpleProductionPlanningProblem
+[2026-03-30 12:54:08,836] INFO: The problem has 21 logic qubits
+[2026-03-30 12:54:08,840] INFO: Building AncillaQAOACircuit with 3 layers
+[2026-03-30 12:54:08,852] INFO: Getting virtual circuit metrics
+[2026-03-30 12:54:08,860] INFO: Transpiling AncillaQAOACircuit for ibm_torino
+[2026-03-30 12:54:09,309] INFO: Getting transpiled circuit metrics
+[2026-03-30 12:54:09,392] INFO: Assigning random parameters to the transpiled circuit
+[2026-03-30 12:54:09,394] INFO: Preparing Hamiltonian for Estimator
+[2026-03-30 12:54:09,394] INFO: Clifford Noise Analysis with NEAT
+[2026-03-30 12:54:10,700] INFO: Virtual QC Metrics:    {'depth': 120, '2q_gates': 684, 'clifford_gates': 42, 'non_clifford_gates': 711, 't_gates': 0, 'total_gates': 753, 'num_active_qubits': 24}
+[2026-03-30 12:54:10,700] INFO: Transpiled QC Metrics: {'depth': 2080, '2q_gates': 2611, 'clifford_gates': 10999, 'non_clifford_gates': 1238, 't_gates': 5, 'total_gates': 12237, 'num_active_qubits': 24}
+[2026-03-30 12:54:10,700] INFO: Clifford QC Metrics:   {'depth': 836, '2q_gates': 1214, 'clifford_gates': 4557, 'non_clifford_gates': 19, 't_gates': 0, 'total_gates': 4576, 'num_active_qubits': 24}
+[2026-03-30 12:54:10,700] INFO: Ideal simulation run on Clifford circuit
+[2026-03-30 12:54:11,092] INFO: Noisy simulation run on Clifford circuit
+[2026-03-30 12:54:11,092] INFO: Full noise simulation run on Clifford circuit
+[2026-03-30 12:55:12,022] INFO: Clifford Ideal Estimator Value:  -56927.673828125
+[2026-03-30 12:55:12,023] INFO: Clifford Noisy Estimator Value:  -44139.646484375
+[2026-03-30 12:55:12,023] INFO: Circuit creation time:       0.0120 seconds
+[2026-03-30 12:55:12,023] INFO: Transpilation time:          0.4489 seconds
+[2026-03-30 12:55:12,023] INFO: Clifford Transpilation time: 0.3880 seconds
+[2026-03-30 12:55:12,023] INFO: Clifford Ideal Estimation time:  0.3921 seconds
+[2026-03-30 12:55:12,023] INFO: Clifford Noisy Estimation time:  60.9300 seconds
+[2026-03-30 12:55:12,023] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-03-30 12:55:12,035] INFO: writing output file: M7_P3_S22222_out/output.json

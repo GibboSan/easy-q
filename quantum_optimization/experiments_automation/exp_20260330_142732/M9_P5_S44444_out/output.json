@@ -1,0 +1,62 @@
+{
+    "seed": 44444,
+    "problem_class": "SimpleProductionPlanningProblem",
+    "problem_params": {
+        "num_machines": 9,
+        "num_products": 5
+    },
+    "circuit_class": "AncillaQAOACircuit",
+    "layers": 3,
+    "backend": "ibm_torino",
+    "logic_qubits": 45,
+    "backend_qubits": 133,
+    "virtual_qc_metrics": {
+        "depth": 210,
+        "2q_gates": 2010,
+        "clifford_gates": 90,
+        "non_clifford_gates": 2065,
+        "t_gates": 0,
+        "total_gates": 2155,
+        "num_active_qubits": 50
+    },
+    "transpiled_qc_metrics": {
+        "depth": 6726,
+        "2q_gates": 10099,
+        "clifford_gates": 42193,
+        "non_clifford_gates": 3436,
+        "t_gates": 6,
+        "total_gates": 45629,
+        "num_active_qubits": 55
+    },
+    "clifford_qc_metrics": {
+        "depth": 4226,
+        "2q_gates": 5834,
+        "clifford_gates": 22919,
+        "non_clifford_gates": 248,
+        "t_gates": 1,
+        "total_gates": 23167,
+        "num_active_qubits": 55
+    },
+    "performance": {
+        "only_clifford": true,
+        "pruned_noise": false
+    },
+    "num_estimator_shots": 100000,
+    "ideal_energy": null,
+    "noisy_energy": null,
+    "pruned_energy": null,
+    "estimator_mitigation_assessment": null,
+    "clifford_ideal_energy": -1541304.3515625,
+    "clifford_noisy_energy": -618635.6796875,
+    "clifford_pruned_energy": null,
+    "clifford_mitigation_assessment": 92266867.1875,
+    "circuit_creation_time": 0.05513175297528505,
+    "transpilation_time": 2.003292841371149,
+    "transpilation_clifford_time": 1.9235689919441938,
+    "ideal_estimation_time": null,
+    "noisy_estimation_time": null,
+    "pruned_estimation_time": null,
+    "clifford_ideal_estimation_time": 3.1545160082168877,
+    "clifford_noisy_estimation_time": 106.12163767917082,
+    "clifford_pruned_estimation_time": null
+}
