@@ -1,30 +1,43 @@
 seed: 12345
 output_folder: "./delme_solver"
-backend_name: null                     # [null, "<backend_name>"]
+backend_name: 'ibm_marrakesh'                     # [null, "<backend_name>"]
 is_backend_fake: True
 
-# Problem ["MaxCutProblem", "QGSProblem", "QGSUncProblem"]
+# Problem ["MaxCutProblem", "QGSProblem", "QGSUncProblem", "SimpleProductionPlanningProblem"]
 problem_class: "QGSProblem"
 problem_params:
   n_nodes: 7                           # MaxCutProblem
   density: 0.7                         # MaxCutProblem
   num_groups: 5                        # QGSProblem
   num_instruments_per_group: 3         # QGSProblem
+  num_machines: 4                      # SimpleProductionPlanningProblem
+  num_products: 3                      # SimpleProductionPlanningProblem
 
-# Solver ["FWALSolver", "QAOASolver", "ClassicalSolver"]
+# Solver ["QAOASolver", "FWALSolver", "ClassicalSolver"]
+
+# Example direct QAOASolver setup:
+solver_class: "QAOASolver"
+solver_params:
+  circuit_class: "AncillaQAOACircuit"
+  num_layers: 2
+  num_starting_points: 5
+  lower_bound: 0.0
+  upper_bound: 6.2832
+  num_estimator_shots: 1024
+  num_sampler_shots: 4096
 
 # Example FWALSolver setup
-solver_class: "FWALSolver"
-solver_params:
-  num_fw_iterations: 20
-  beta0: 1.0
-  dual_step_rule: "constant"
-  rounding_project: True
-  convergence_tol: 1.0e-4
+# solver_class: "FWALSolver"
+# solver_params:
+#   num_fw_iterations: 20
+#   beta0: 1.0
+#   dual_step_rule: "constant"
+#   rounding_project: True
+#   convergence_tol: 1.0e-4
 
-  # Nested LMO solver config for FWALSolver.
-  lmo_solver_class: "ClassicalSolver"
-  lmo_solver_params: {}
+#   # Nested LMO solver config for FWALSolver.
+#   lmo_solver_class: "ClassicalSolver"
+#   lmo_solver_params: {}
 
   # Example QAOA-based LMO config:
   # lmo_solver_class: "QAOASolver"
@@ -36,14 +49,3 @@ solver_params:
   #   upper_bound: 6.2832
   #   num_estimator_shots: 1024
   #   num_sampler_shots: 2048
-
-# Example direct QAOASolver setup:
-# solver_class: "QAOASolver"
-# solver_params:
-#   circuit_class: "AncillaQAOACircuit"
-#   num_layers: 2
-#   num_starting_points: 5
-#   lower_bound: 0.0
-#   upper_bound: 6.2832
-#   num_estimator_shots: 1024
-#   num_sampler_shots: 4096
