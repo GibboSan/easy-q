@@ -89,7 +89,7 @@ class MNeat(Neat):
         with_noise: bool,
         seed_simulator: int | None,
         precision: float,
-    ):
+    ) -> callable[[Any], float]:
         """Build a scalar expectation executor for one observable."""
         backend_options = {
             "method": "stabilizer",
@@ -100,7 +100,7 @@ class MNeat(Neat):
             options={"backend_options": backend_options, "default_precision": precision}
         )
 
-        def executor(circuit):
+        def executor(circuit) -> float:
             observables_for_pub: Any = np.asarray([observable], dtype=object)
             trial_pub = EstimatorPub(
                 circuit,
