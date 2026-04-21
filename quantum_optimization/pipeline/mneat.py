@@ -6,18 +6,22 @@ simulation methods that preserve the NEAT return type (NeatResult).
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, Literal
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import SparsePauliOp
 from qiskit.primitives.containers import EstimatorPubLike
 from qiskit.primitives.containers.estimator_pub import EstimatorPub
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime.debug_tools import Neat
 from qiskit_ibm_runtime.debug_tools.neat_results import NeatPubResult, NeatResult
 
 try:
     from qiskit_aer.primitives.estimator_v2 import EstimatorV2 as AerEstimator
+    from qiskit_aer.primitives.sampler_v2 import SamplerV2 as AerSampler
 except ImportError as exc:
     raise ImportError(
         "quantum_optimization/mneat.py requires qiskit-aer."
@@ -37,7 +41,13 @@ try:
 except ImportError:
     HAS_MITIQ = False
 
+if TYPE_CHECKING:
+    from mitiq import MeasurementResult as MitiqMeasurementResult
+else:
+    MitiqMeasurementResult = Any
+
 MitigationTechnique = Literal["zne", "pec", "rem", "cdr"]
+ExecutionMode = Literal["fast", "mitiq-native"]
 
 
 class MNeat(Neat):
@@ -82,6 +92,53 @@ class MNeat(Neat):
             )
         return float(arr[0])
 
+    @staticmethod
+    def _extract_counts_from_sampler_data(data: Any) -> dict[str, int]:
+        """Extract count dictionary from Qiskit Sampler result data."""
+        classic_register = getattr(data, "classic_register", None)
+        if classic_register is not None and hasattr(classic_register, "get_counts"):
+            return classic_register.get_counts()
+
+        join_data = getattr(data, "join_data", None)
+        if callable(join_data):
+            joined = join_data()
+            get_counts = getattr(joined, "get_counts", None)
+            if callable(get_counts):
+                return cast(dict[str, int], get_counts())
+
+        for attr in dir(data):
+            if attr.startswith("_"):
+                continue
+            value = getattr(data, attr, None)
+            get_counts = getattr(value, "get_counts", None)
+            if callable(get_counts):
+                return cast(dict[str, int], get_counts())
+
+        raise ValueError("Unable to extract counts from Sampler result data.")
+
+    @staticmethod
+    def _to_mitiq_observable(observable: Any) -> Any:
+        """Convert Qiskit observables to Mitiq Observable when possible."""
+        try:
+            from mitiq import Observable as MitiqObservable
+            from mitiq import PauliString as MitiqPauliString
+        except ImportError:
+            return observable
+
+        if isinstance(observable, MitiqObservable):
+            return observable
+        if isinstance(observable, SparsePauliOp):
+            pauli_terms = []
+            for label, coeff in observable.to_list():
+                coeff_complex = complex(coeff)
+                if abs(coeff_complex) == 0:
+                    continue
+                pauli_terms.append(MitiqPauliString(spec=label, coeff=coeff_complex))
+            if not pauli_terms:
+                raise ValueError("Observable has no non-zero Pauli terms.")
+            return MitiqObservable(*pauli_terms)
+        return observable
+
     def _make_scalar_estimator_executor(
         self,
         pub: EstimatorPub,
@@ -89,7 +146,7 @@ class MNeat(Neat):
         with_noise: bool,
         seed_simulator: int | None,
         precision: float,
-    ) -> callable[[Any], float]:
+    ) -> Callable[[Any], float]:
         """Build a scalar expectation executor for one observable."""
         backend_options = {
             "method": "stabilizer",
@@ -117,6 +174,42 @@ class MNeat(Neat):
 
         return executor
 
+    def _make_sampler_measurement_executor(
+        self,
+        with_noise: bool,
+        seed_simulator: int | None,
+        shots: int,
+    ) -> Callable[[QuantumCircuit], MitiqMeasurementResult]:
+        """Build a sampler executor returning MeasurementResult for Mitiq-native mode."""
+        backend_options = {
+            "method": "stabilizer",
+            "noise_model": self.noise_model if with_noise else None,
+            "seed_simulator": seed_simulator,
+        }
+        sampler = AerSampler(options={"backend_options": backend_options})
+
+        try:
+            pass_manager = generate_preset_pass_manager(
+                optimization_level=0,
+                backend=self.backend,
+            )
+        except Exception:
+            pass_manager = None
+
+        def executor(circuit: QuantumCircuit) -> MitiqMeasurementResult:
+            from mitiq import MeasurementResult as RuntimeMeasurementResult
+
+            exec_circuit = pass_manager.run(circuit) if pass_manager is not None else circuit
+            if getattr(exec_circuit, "num_clbits", 0) == 0:
+                exec_circuit = exec_circuit.copy()
+                exec_circuit.measure_all()
+            job = sampler.run([(exec_circuit,)], shots=shots)
+            data = job.result()[0].data
+            counts = self._extract_counts_from_sampler_data(data)
+            return RuntimeMeasurementResult.from_counts(counts)
+
+        return executor
+
     def _mitigate_value(
         self,
         technique: MitigationTechnique,
@@ -124,15 +217,20 @@ class MNeat(Neat):
         observable,
         noisy_executor,
         ideal_executor,
+        execution_mode: ExecutionMode,
         technique_kwargs: dict[str, Any],
     ) -> float:
         """Apply one mitigation technique to one circuit/executor pair."""
         kwargs = dict(technique_kwargs)
 
         if technique == "zne":
+            zne_observable = None
+            if execution_mode == "mitiq-native":
+                zne_observable = self._to_mitiq_observable(observable)
             value = zne.execute_with_zne(
                 circuit,
                 noisy_executor,
+                observable=zne_observable,
                 **kwargs,
             )
             return self._extract_scalar(value)
@@ -191,45 +289,64 @@ class MNeat(Neat):
         cliffordize: bool = False,
         seed_simulator: int | None = None,
         precision: float = 0,
+        execution_mode: ExecutionMode = "fast",
         technique_kwargs: dict[str, Any] | None = None,
     ) -> NeatResult:
         """Run a Mitiq-mitigated noisy simulation and return a NeatResult."""
         self._ensure_mitiq()
+        if execution_mode == "mitiq-native" and technique != "zne":
+            raise ValueError(
+                "Execution mode 'mitiq-native' is currently supported only for technique='zne'."
+            )
 
         if cliffordize:
             coerced_pubs = self.to_clifford(pubs)
         else:
             coerced_pubs = [EstimatorPub.coerce(p) for p in pubs]
 
-        cfg = technique_kwargs or {}
+        cfg = dict(technique_kwargs or {})
+        sampler_shots = int(cfg.pop("sampler_shots", 8192))
         pub_results: list[NeatPubResult] = []
 
         for pub in coerced_pubs:
             obs_array = self._as_observable_array(pub.observables)
             flat_obs = obs_array.reshape(-1)
             mitigated_vals: list[float] = []
+            native_noisy_executor = None
 
-            for obs in flat_obs:
-                noisy_executor = self._make_scalar_estimator_executor(
-                    pub=pub,
-                    observable=obs,
+            if execution_mode == "mitiq-native":
+                native_noisy_executor = self._make_sampler_measurement_executor(
                     with_noise=True,
                     seed_simulator=seed_simulator,
-                    precision=precision,
+                    shots=sampler_shots,
                 )
-                ideal_executor = self._make_scalar_estimator_executor(
-                    pub=pub,
-                    observable=obs,
-                    with_noise=False,
-                    seed_simulator=seed_simulator,
-                    precision=precision,
-                )
+
+            for obs in flat_obs:
+                if execution_mode == "mitiq-native":
+                    noisy_executor = native_noisy_executor
+                    ideal_executor = None
+                else:
+                    noisy_executor = self._make_scalar_estimator_executor(
+                        pub=pub,
+                        observable=obs,
+                        with_noise=True,
+                        seed_simulator=seed_simulator,
+                        precision=precision,
+                    )
+                    ideal_executor = self._make_scalar_estimator_executor(
+                        pub=pub,
+                        observable=obs,
+                        with_noise=False,
+                        seed_simulator=seed_simulator,
+                        precision=precision,
+                    )
                 val = self._mitigate_value(
                     technique=technique,
                     circuit=pub.circuit,
                     observable=obs,
                     noisy_executor=noisy_executor,
                     ideal_executor=ideal_executor,
+                    execution_mode=execution_mode,
                     technique_kwargs=cfg,
                 )
                 mitigated_vals.append(val)
@@ -245,6 +362,7 @@ class MNeat(Neat):
         cliffordize: bool = False,
         seed_simulator: int | None = None,
         precision: float = 0,
+        execution_mode: ExecutionMode = "fast",
         **zne_kwargs: Any,
     ) -> NeatResult:
         """Convenience wrapper for mitigated_sim(..., technique='zne')."""
@@ -254,6 +372,7 @@ class MNeat(Neat):
             cliffordize=cliffordize,
             seed_simulator=seed_simulator,
             precision=precision,
+            execution_mode=execution_mode,
             technique_kwargs=zne_kwargs,
         )
 
