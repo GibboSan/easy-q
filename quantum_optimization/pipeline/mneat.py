@@ -11,10 +11,11 @@ from typing import Any, Literal, cast
 
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, circuit
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.primitives.containers import EstimatorPubLike
 from qiskit.primitives.containers.estimator_pub import EstimatorPub
+from qiskit.primitives.containers.observables_array import ObservablesArray
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime.debug_tools import Neat
 from qiskit_ibm_runtime.debug_tools.neat_results import NeatPubResult, NeatResult
@@ -35,8 +36,14 @@ try:
         execute_with_pec,
         represent_operations_in_circuit_with_local_depolarizing_noise as represent_ops_local,
     )
-    from mitiq.rem import execute_with_rem
+    from mitiq.rem import (
+        execute_with_rem,
+        generate_tensored_inverse_confusion_matrix
+    )
     from mitiq.zne.inference import RichardsonFactory
+
+    from mitiq import Observable as MitiqObservable
+    from mitiq import PauliString as MitiqPauliString
 
     HAS_MITIQ = True
 except ImportError:
@@ -166,23 +173,19 @@ class MNeat(Neat):
     @staticmethod
     def _compact_pauli_label(label: str) -> str:
         """Compact a Pauli label onto contiguous support by removing identity gaps."""
-        compact = "".join(ch for ch in label if ch != "I")
-        return compact or "I"
+        # Stripping 'I's breaks positional mapping and causes REM matrix shape mismatch.
+        # We must keep the 'I's to maintain alignment with active qubit measurements.
+        return label
 
     @staticmethod
     def _to_mitiq_observable(observable: Any, circuit: Any = None) -> Any:
         """Convert Qiskit observables to Mitiq Observable when possible."""
-        try:
-            from mitiq import Observable as MitiqObservable
-            from mitiq import PauliString as MitiqPauliString
-        except ImportError:
-            return observable
 
         if isinstance(observable, MitiqObservable):
             return observable
         if isinstance(observable, MitiqPauliString):
             return MitiqObservable(observable)
-        if isinstance(observable, (list, tuple, np.ndarray)):
+        if isinstance(observable, (list, tuple, np.ndarray, ObservablesArray)):
             combined_paulis = []
             obs_items = np.asarray(observable, dtype=object).reshape(-1)
             for item in obs_items:
@@ -246,14 +249,14 @@ class MNeat(Neat):
 
         def executor(circuit) -> float:
             observables_for_pub: Any = np.asarray([observable], dtype=object)
-            trial_pub = EstimatorPub(
+            estimator_pub = EstimatorPub(
                 circuit,
                 observables_for_pub,
                 pub.parameter_values,
                 pub.precision,
                 False,
             )
-            data = estimator.run([trial_pub]).result()[0].data
+            data = estimator.run([estimator_pub]).result()[0].data
             evs = getattr(data, "evs", None)
             if evs is None:
                 raise ValueError("Estimator result has no 'evs' field.")
@@ -279,22 +282,20 @@ class MNeat(Neat):
         }
         sampler = AerSampler(options={"backend_options": backend_options})
 
-        try:
-            pass_manager = generate_preset_pass_manager(
-                optimization_level=0,
-                backend=self.backend,
-            )
-        except Exception:
-            pass_manager = None
-
         from mitiq.typing import MeasurementResult as MitiqMeasurementResult
 
         def executor(circuit: QuantumCircuit) -> Any:
-            exec_circuit = pass_manager.run(circuit) if pass_manager is not None else circuit
-            if getattr(exec_circuit, "num_clbits", 0) == 0:
-                exec_circuit = exec_circuit.copy()
-                exec_circuit.measure_all()
-            job = sampler.run([(exec_circuit,)], shots=shots)
+
+            if getattr(circuit, "num_clbits", 0) == 0:
+                circuit = circuit.copy()
+                active_qubits = self._active_qubit_indices(circuit)
+                if active_qubits:
+                    from qiskit import ClassicalRegister
+                    c_reg = ClassicalRegister(len(active_qubits), name="meas")
+                    circuit.add_register(c_reg)
+                    for c_idx, q_idx in enumerate(active_qubits):
+                        circuit.measure(circuit.qubits[q_idx], c_reg[c_idx])
+            job = sampler.run([(circuit,)], shots=shots)
             data = job.result()[0].data
             counts = self._extract_counts_from_sampler_data(data)
             return MitiqMeasurementResult.from_counts(counts)
@@ -303,11 +304,32 @@ class MNeat(Neat):
         executor.__annotations__["return"] = MitiqMeasurementResult
 
         return executor
+    
+    def _get_mitiq_rem_confusion_matrix(self, circuit: QuantumCircuit) -> np.ndarray:
+        """Generate a REM confusion matrix for the given circuit and noise model."""
+
+        local_rem_matrices = []
+
+        active_qubits = self._active_qubit_indices(circuit)
+        
+        for q in active_qubits:
+            ro_error = self.noise_model._local_readout_errors.get((q,))
+            if ro_error:
+                a_matrix = np.array(ro_error.probabilities).T
+                local_rem_matrices.append(a_matrix)
+            else:
+                local_rem_matrices.append(np.eye(2))
+        
+        if not local_rem_matrices:
+            return np.eye(2 ** len(active_qubits))
+        rem_inverse_confusion_matrix = generate_tensored_inverse_confusion_matrix(len(active_qubits), local_rem_matrices)
+
+        return rem_inverse_confusion_matrix
 
     def _mitigate_value(
         self,
         technique: MitigationTechnique,
-        circuit,
+        circuit: QuantumCircuit,
         observable,
         noisy_executor,
         ideal_executor,
@@ -322,56 +344,79 @@ class MNeat(Neat):
             else None
         )
 
+        import inspect
+        def filter_args(func, kw):
+            spec = inspect.getfullargspec(func)
+            if spec.varkw is not None:
+                return dict(kw)
+            return {k: v for k, v in kw.items() if k in spec.args + spec.kwonlyargs}
+
         if technique == "zne":
-            value = zne.execute_with_zne(
-                circuit,
-                noisy_executor,
-                observable=mitiq_observable,
-                **kwargs,
-            )
+            f_kwargs = filter_args(zne.execute_with_zne, kwargs)
+            if mitiq_observable is None:
+                value = zne.execute_with_zne(
+                    circuit,
+                    noisy_executor,
+                    **f_kwargs,
+                )
+            else:
+                value = zne.execute_with_zne(
+                    circuit,
+                    noisy_executor,
+                    observable=mitiq_observable,
+                    **f_kwargs,
+                )
             return value
 
         if technique == "pec":
-            representations = kwargs.pop("representations", None)
+            representations = kwargs.get("representations")
             if representations is None:
-                noise_level = kwargs.pop("noise_level", 0.01)
+                noise_level = kwargs.get("noise_level", 0.01)
                 representations = represent_ops_local(circuit, noise_level=noise_level)
 
-            num_samples = kwargs.pop("num_samples", 100)
+            num_samples = kwargs.get("num_samples", 100)
+            f_kwargs = filter_args(execute_with_pec, kwargs)
+            for k in ["circuit", "executor", "observable", "representations", "num_samples", "noise_level"]:
+                f_kwargs.pop(k, None)
             value = execute_with_pec(
                 circuit,
                 noisy_executor,
                 observable=mitiq_observable,
                 representations=representations,
                 num_samples=num_samples,
-                **kwargs,
+                **f_kwargs,
             )
             return value
 
         if technique == "rem":
-            inverse_confusion_matrix = kwargs.pop("inverse_confusion_matrix", None)
-            rem_observable = (
-                mitiq_observable
-                if execution_mode == "sampler"
-                else self._to_mitiq_observable(observable, circuit)
-            )
-            if rem_observable is None:
-                raise ValueError("REM requires a valid observable.")
+            inverse_confusion_matrix = kwargs.get("inverse_confusion_matrix")
+            if inverse_confusion_matrix is None:
+                inverse_confusion_matrix = self._get_mitiq_rem_confusion_matrix(circuit)
+
+            f_kwargs = filter_args(execute_with_rem, kwargs)
+            for k in ["circuit", "executor", "observable", "inverse_confusion_matrix"]:
+                f_kwargs.pop(k, None)
+            
             value = execute_with_rem(
                 circuit,
                 noisy_executor,
-                rem_observable,
+                mitiq_observable,
                 inverse_confusion_matrix=inverse_confusion_matrix,
-                **kwargs,
+                **f_kwargs,
             )
             return value
 
         if technique == "cdr":
-            simulator = kwargs.pop("simulator", ideal_executor)
+            simulator = kwargs.get("simulator", ideal_executor)
             if simulator is None:
                 raise ValueError("CDR mitigation requires an ideal simulator callable.")
-            num_training_circuits = kwargs.pop("num_training_circuits", 24)
-            fraction_non_clifford = kwargs.pop("fraction_non_clifford", 0.1)
+            num_training_circuits = kwargs.get("num_training_circuits", 24)
+            fraction_non_clifford = kwargs.get("fraction_non_clifford", 0.1)
+            
+            f_kwargs = filter_args(execute_with_cdr, kwargs)
+            for k in ["circuit", "executor", "observable", "simulator", "num_training_circuits", "fraction_non_clifford"]:
+                f_kwargs.pop(k, None)
+
             value = execute_with_cdr(
                 circuit,
                 noisy_executor,
@@ -379,16 +424,17 @@ class MNeat(Neat):
                 simulator=simulator,
                 num_training_circuits=num_training_circuits,
                 fraction_non_clifford=fraction_non_clifford,
-                **kwargs,
+                **f_kwargs,
             )
             return value
 
         if technique == "ddd":
+            f_kwargs = filter_args(execute_with_ddd, kwargs)
             value = execute_with_ddd(
                 circuit,
                 noisy_executor,
                 observable=mitiq_observable,
-                **kwargs,
+                **f_kwargs,
             )
             return value
 
@@ -399,7 +445,7 @@ class MNeat(Neat):
     def mitigated_sim(
         self,
         pubs: Sequence[EstimatorPubLike],
-        technique: MitigationTechnique,
+        technique: MitigationTechnique | Sequence[MitigationTechnique],
         cliffordize: bool = False,
         seed_simulator: int | None = None,
         precision: float = 0,
@@ -446,20 +492,17 @@ class MNeat(Neat):
             native_ideal_executor = None
 
             if execution_mode == "sampler":
-                native_noisy_executor = self._make_sampler_measurement_executor(
+                noisy_executor = self._make_sampler_measurement_executor(
                     with_noise=True,
                     seed_simulator=seed_simulator,
                     shots=sampler_shots,
                 )
-                native_ideal_executor = self._make_sampler_measurement_executor(
+                ideal_executor = self._make_sampler_measurement_executor(
                     with_noise=False,
                     seed_simulator=seed_simulator,
                     shots=sampler_shots,
                 )
 
-            if execution_mode == "sampler":
-                noisy_executor = native_noisy_executor
-                ideal_executor = native_ideal_executor
             else:
                 noisy_executor = self._make_scalar_estimator_executor(
                     pub=pub,
@@ -475,118 +518,45 @@ class MNeat(Neat):
                     seed_simulator=seed_simulator,
                     precision=precision,
                 )
+            if isinstance(technique, str):
+                techniques = [technique]
+            else:
+                techniques = list(technique)
+
+            current_exec = noisy_executor
+            current_mode = execution_mode
+
+            for tech in techniques[:-1]:
+                def make_wrapper(t: str, b_exec: Callable, c_mode: str, b_obs: Any):
+                    def wrapped_executor(circ: QuantumCircuit) -> float:
+                        return self._mitigate_value(
+                            technique=t, # type: ignore
+                            circuit=circ,
+                            observable=b_obs,
+                            noisy_executor=b_exec,
+                            ideal_executor=ideal_executor,
+                            execution_mode=c_mode, # type: ignore
+                            technique_kwargs=cfg,
+                        )
+                    wrapped_executor.__annotations__ = {'return': float}                    
+                    return wrapped_executor
+
+                current_exec = make_wrapper(tech, current_exec, current_mode, obs_array)
+                current_mode = "estimator"
+                obs_array = None
+
             val = self._mitigate_value(
-                technique=technique,
+                technique=techniques[-1], # type: ignore
                 circuit=pub.circuit,
-                observable=obs_array,
-                noisy_executor=noisy_executor,
+                observable=obs_array, # Will be None if nested!
+                noisy_executor=current_exec,
                 ideal_executor=ideal_executor,
-                execution_mode=execution_mode,
+                execution_mode=current_mode, # type: ignore
                 technique_kwargs=cfg,
             )
             vals = np.asarray([np.real(val)], dtype=float)
-            if execution_mode == "sampler":
+            if execution_mode == "sampler" and obs_array is not None and len(obs_array) > 0:
                 vals = vals / len(obs_array) if len(obs_array) > 0 else vals
             pub_results.append(NeatPubResult(vals))
 
         return NeatResult(pub_results)
-
-    def zne_mit_noisy_sim(
-        self,
-        pubs: Sequence[EstimatorPubLike],
-        cliffordize: bool = False,
-        seed_simulator: int | None = None,
-        precision: float = 0,
-        execution_mode: ExecutionMode = "sampler",
-        **zne_kwargs: Any,
-    ) -> NeatResult:
-        """Convenience wrapper for mitigated_sim(..., technique='zne')."""
-        return self.mitigated_sim(
-            pubs=pubs,
-            technique="zne",
-            cliffordize=cliffordize,
-            seed_simulator=seed_simulator,
-            precision=precision,
-            execution_mode=execution_mode,
-            kwargs=zne_kwargs,
-        )
-
-    def pec_mit_noisy_sim(
-        self,
-        pubs: Sequence[EstimatorPubLike],
-        cliffordize: bool = False,
-        seed_simulator: int | None = None,
-        precision: float = 0,
-        execution_mode: ExecutionMode = "sampler",
-        **pec_kwargs: Any,
-    ) -> NeatResult:
-        """Convenience wrapper for mitigated_sim(..., technique='pec')."""
-        return self.mitigated_sim(
-            pubs=pubs,
-            technique="pec",
-            cliffordize=cliffordize,
-            seed_simulator=seed_simulator,
-            precision=precision,
-            execution_mode=execution_mode,
-            kwargs=pec_kwargs,
-        )
-
-    def rem_mit_noisy_sim(
-        self,
-        pubs: Sequence[EstimatorPubLike],
-        cliffordize: bool = False,
-        seed_simulator: int | None = None,
-        precision: float = 0,
-        execution_mode: ExecutionMode = "sampler",
-        **rem_kwargs: Any,
-    ) -> NeatResult:
-        """Convenience wrapper for mitigated_sim(..., technique='rem')."""
-        return self.mitigated_sim(
-            pubs=pubs,
-            technique="rem",
-            cliffordize=cliffordize,
-            seed_simulator=seed_simulator,
-            precision=precision,
-            execution_mode=execution_mode,
-            kwargs=rem_kwargs,
-        )
-
-    def cdr_mit_noisy_sim(
-        self,
-        pubs: Sequence[EstimatorPubLike],
-        cliffordize: bool = False,
-        seed_simulator: int | None = None,
-        precision: float = 0,
-        execution_mode: ExecutionMode = "sampler",
-        **cdr_kwargs: Any,
-    ) -> NeatResult:
-        """Convenience wrapper for mitigated_sim(..., technique='cdr')."""
-        return self.mitigated_sim(
-            pubs=pubs,
-            technique="cdr",
-            cliffordize=cliffordize,
-            seed_simulator=seed_simulator,
-            precision=precision,
-            execution_mode=execution_mode,
-            kwargs=cdr_kwargs,
-        )
-
-    def ddd_mit_noisy_sim(
-        self,
-        pubs: Sequence[EstimatorPubLike],
-        cliffordize: bool = False,
-        seed_simulator: int | None = None,
-        precision: float = 0,
-        execution_mode: ExecutionMode = "sampler",
-        **ddd_kwargs: Any,
-    ) -> NeatResult:
-        """Convenience wrapper for mitigated_sim(..., technique='ddd')."""
-        return self.mitigated_sim(
-            pubs=pubs,
-            technique="ddd",
-            cliffordize=cliffordize,
-            seed_simulator=seed_simulator,
-            precision=precision,
-            execution_mode=execution_mode,
-            kwargs=ddd_kwargs,
-        )
