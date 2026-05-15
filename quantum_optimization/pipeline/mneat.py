@@ -36,6 +36,14 @@ try:
         execute_with_pec,
         represent_operations_in_circuit_with_local_depolarizing_noise as represent_ops_local,
     )
+    try:
+        # Docs: mitiq.experimental.pea.pea.execute_with_pea
+        from mitiq.experimental.pea.pea import execute_with_pea
+    except Exception:  # pragma: no cover
+        # Fallback for alternate export styles.
+        from mitiq.experimental import pea as _pea_module
+
+        execute_with_pea = _pea_module.execute_with_pea
     from mitiq.rem import (
         execute_with_rem,
         generate_tensored_inverse_confusion_matrix
@@ -49,7 +57,7 @@ try:
 except ImportError:
     HAS_MITIQ = False
 
-MitigationTechnique = Literal["zne", "pec", "rem", "cdr", "ddd"]
+MitigationTechnique = Literal["zne", "pec", "rem", "cdr", "ddd", "pea"]
 ExecutionMode = Literal["estimator", "sampler"]
 
 
@@ -63,6 +71,7 @@ class MNeat(Neat):
       - zne_mit_noisy_sim(...)
       - pec_mit_noisy_sim(...)
       - rem_mit_noisy_sim(...)
+            - pea_mit_noisy_sim(...)
       - cdr_mit_noisy_sim(...)
             - ddd_mit_noisy_sim(...)
     """
@@ -397,6 +406,9 @@ class MNeat(Neat):
             for k in ["circuit", "executor", "observable", "inverse_confusion_matrix"]:
                 f_kwargs.pop(k, None)
             
+            if mitiq_observable is None:
+                raise ValueError("Warning: REM mitigation only works with an observable.")
+
             value = execute_with_rem(
                 circuit,
                 noisy_executor,
@@ -430,6 +442,9 @@ class MNeat(Neat):
 
         if technique == "ddd":
             f_kwargs = filter_args(execute_with_ddd, kwargs)
+            if "rule" not in f_kwargs:
+                from mitiq.ddd.rules import xx
+                f_kwargs["rule"] = xx # Default to XX rule if not specified
             value = execute_with_ddd(
                 circuit,
                 noisy_executor,
@@ -438,8 +453,23 @@ class MNeat(Neat):
             )
             return value
 
+        if technique == "pea":
+            if execution_mode == "sampler":
+                raise ValueError(
+                    "PEA requires a scalar executor. Use execution_mode='estimator'."
+                )
+            f_kwargs = filter_args(execute_with_pea, kwargs)
+            for k in ["circuit", "executor", "observable"]:
+                f_kwargs.pop(k, None)
+            value = execute_with_pea(
+                cast(Any, circuit),
+                noisy_executor,
+                **f_kwargs,
+            )
+            return value
+
         raise ValueError(
-            "Unknown mitigation technique. Supported values are: 'zne', 'pec', 'rem', 'cdr', 'ddd'."
+            "Unknown mitigation technique. Supported values are: 'zne', 'pec', 'rem', 'cdr', 'ddd', 'pea'."
         )
 
     def mitigated_sim(
@@ -456,7 +486,7 @@ class MNeat(Neat):
 
         Args:
             pubs: Estimator PUB inputs.
-            technique: Mitigation method, one of ``"zne"``, ``"pec"``, ``"rem"``, ``"cdr"``, ``"ddd"``.
+            technique: Mitigation method, one of ``"zne"``, ``"pec"``, ``"rem"``, ``"cdr"``, ``"ddd"``, ``"pea"``.
             cliffordize: If ``True``, convert PUB circuits with ``to_clifford`` before simulation.
             seed_simulator: Seed for Aer primitives.
             precision: Estimator precision used in ``execution_mode="fast"``.
@@ -474,6 +504,7 @@ class MNeat(Neat):
             - rem: ``inverse_confusion_matrix``
             - cdr: ``simulator``, ``num_training_circuits``, ``fraction_non_clifford``
             - ddd: ``rule``, ``rule_args``, ``num_trials``
+            - pea: ``scale_factors``, ``noise_model``, ``epsilon``, ``extrapolation_method``, ``random_state``
         """
         self._ensure_mitiq()
 
@@ -488,17 +519,10 @@ class MNeat(Neat):
 
         for pub in coerced_pubs:
             obs_array = self._as_observable_array(pub.observables)
-            native_noisy_executor = None
-            native_ideal_executor = None
 
             if execution_mode == "sampler":
                 noisy_executor = self._make_sampler_measurement_executor(
                     with_noise=True,
-                    seed_simulator=seed_simulator,
-                    shots=sampler_shots,
-                )
-                ideal_executor = self._make_sampler_measurement_executor(
-                    with_noise=False,
                     seed_simulator=seed_simulator,
                     shots=sampler_shots,
                 )
@@ -511,7 +535,8 @@ class MNeat(Neat):
                     seed_simulator=seed_simulator,
                     precision=precision,
                 )
-                ideal_executor = self._make_scalar_estimator_executor(
+
+            ideal_executor = self._make_scalar_estimator_executor(
                     pub=pub,
                     observable=obs_array,
                     with_noise=False,
@@ -529,7 +554,7 @@ class MNeat(Neat):
             for tech in techniques[:-1]:
                 def make_wrapper(t: str, b_exec: Callable, c_mode: str, b_obs: Any):
                     def wrapped_executor(circ: QuantumCircuit) -> float:
-                        return self._mitigate_value(
+                        temp_vals = self._mitigate_value(
                             technique=t, # type: ignore
                             circuit=circ,
                             observable=b_obs,
@@ -538,7 +563,12 @@ class MNeat(Neat):
                             execution_mode=c_mode, # type: ignore
                             technique_kwargs=cfg,
                         )
-                    wrapped_executor.__annotations__ = {'return': float}                    
+                        temp_vals = np.asarray([np.real(temp_vals)], dtype=float)
+                        if c_mode == "sampler" and b_obs is not None and len(b_obs) > 0:
+                            temp_vals = temp_vals / len(b_obs)
+                        return float(temp_vals)
+
+                    wrapped_executor.__annotations__ = {'return': float}
                     return wrapped_executor
 
                 current_exec = make_wrapper(tech, current_exec, current_mode, obs_array)
@@ -556,7 +586,7 @@ class MNeat(Neat):
             )
             vals = np.asarray([np.real(val)], dtype=float)
             if execution_mode == "sampler" and obs_array is not None and len(obs_array) > 0:
-                vals = vals / len(obs_array) if len(obs_array) > 0 else vals
+                vals = vals / len(obs_array)
             pub_results.append(NeatPubResult(vals))
 
         return NeatResult(pub_results)
