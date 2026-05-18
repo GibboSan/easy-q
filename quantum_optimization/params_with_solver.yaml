@@ -49,3 +49,13 @@ solver_params:
   #   upper_bound: 6.2832
   #   num_estimator_shots: 1024
   #   num_sampler_shots: 2048
+
+# Performance parameters
+performance:
+  only_clifford: True
+  pruned_noise: False
+  use_general_observables: False
+  mitigation_params:
+    technique: 'zne'
+    # technique_params:
+    #   factory: 'LinearFactory'
