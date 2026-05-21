@@ -66,14 +66,6 @@ class MNeat(Neat):
 
     Core API:
       - mitigated_sim(..., technique=..., technique_kwargs=...)
-
-    Convenience wrappers:
-      - zne_mit_noisy_sim(...)
-      - pec_mit_noisy_sim(...)
-      - rem_mit_noisy_sim(...)
-            - pea_mit_noisy_sim(...)
-      - cdr_mit_noisy_sim(...)
-            - ddd_mit_noisy_sim(...)
     """
 
     def _ensure_mitiq(self) -> None:

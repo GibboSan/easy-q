@@ -233,13 +233,13 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
             if factory_type.lower() == 'richardson':
                 factory = RichardsonFactory(scale_factors=noise_values)
             elif factory_type.lower() == 'poly':
-                factory = PolyFactory(scale_factors=noise_values)
+                factory = PolyFactory(scale_factors=noise_values, order=len(noise_values)-1)
             elif factory_type.lower() == 'exp':
                 factory = ExpFactory(scale_factors=noise_values)
             elif factory_type.lower() == 'polyexp':
-                factory = PolyExpFactory(scale_factors=noise_values)
+                factory = PolyExpFactory(scale_factors=noise_values, order=len(noise_values)-1)
             elif factory_type.lower() == 'adaexp':
-                factory = AdaExpFactory(scale_factors=noise_values)
+                factory = AdaExpFactory(steps=4)
             else:  # linear (default)
                 factory = LinearFactory(scale_factors=noise_values)
             

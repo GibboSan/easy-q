@@ -2,8 +2,8 @@
 Simple Production Planning Problem
 
 This module defines a simplified production-planning assignment problem with
-random assignment costs. Each product is assigned to exactly one machine, and each
-machine has a uniform capacity limit derived from the problem dimensions.
+random assignment costs. Each product is assigned to exactly one machine, and
+each machine has a uniform capacity limit derived from the problem dimensions.
 
 Variables
 - M: set of machines.
