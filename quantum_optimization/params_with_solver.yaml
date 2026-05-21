@@ -10,8 +10,8 @@ problem_params:
   density: 0.7                         # MaxCutProblem
   num_groups: 5                        # QGSProblem
   num_instruments_per_group: 2         # QGSProblem
-  num_machines: 8                      # SimpleProductionPlanningProblem
-  num_products: 2                      # SimpleProductionPlanningProblem
+  num_machines: 2                      # SimpleProductionPlanningProblem
+  num_products: 8                      # SimpleProductionPlanningProblem
 
 # Solver ["QAOASolver", "FWALSolver", "ClassicalSolver"]
 
@@ -58,5 +58,5 @@ performance:
   mitigation_params:
     technique: 'zne'
     technique_params:
-      factory: richardson  # ['linear' (default), 'richardson', 'poly', 'exp', 'polyexp', 'adaexp']
+      factory: linear  # ['linear' (default), 'richardson', 'poly', 'exp', 'polyexp', 'adaexp']
       noise_values: [1, 2, 3]  # scale factors for noise extrapolation
