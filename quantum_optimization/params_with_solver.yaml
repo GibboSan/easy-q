@@ -1,17 +1,17 @@
 seed: 12345
-output_folder: "./delme_solver"
+output_folder: "./delme_performance"
 backend_name: 'ibm_marrakesh'                     # [null, "<backend_name>"]
 is_backend_fake: True
 
 # Problem ["MaxCutProblem", "QGSProblem", "QGSUncProblem", "SimpleProductionPlanningProblem"]
-problem_class: "QGSProblem"
+problem_class: "SimpleProductionPlanningProblem"
 problem_params:
   n_nodes: 7                           # MaxCutProblem
   density: 0.7                         # MaxCutProblem
   num_groups: 5                        # QGSProblem
-  num_instruments_per_group: 3         # QGSProblem
-  num_machines: 4                      # SimpleProductionPlanningProblem
-  num_products: 3                      # SimpleProductionPlanningProblem
+  num_instruments_per_group: 2         # QGSProblem
+  num_machines: 8                      # SimpleProductionPlanningProblem
+  num_products: 2                      # SimpleProductionPlanningProblem
 
 # Solver ["QAOASolver", "FWALSolver", "ClassicalSolver"]
 
@@ -20,7 +20,7 @@ solver_class: "QAOASolver"
 solver_params:
   circuit_class: "AncillaQAOACircuit"
   num_layers: 2
-  num_starting_points: 5
+  num_starting_points: 1
   lower_bound: 0.0
   upper_bound: 6.2832
   num_estimator_shots: 1024
@@ -57,5 +57,6 @@ performance:
   use_general_observables: False
   mitigation_params:
     technique: 'zne'
-    # technique_params:
-    #   factory: 'LinearFactory'
+    technique_params:
+      factory: richardson  # ['linear' (default), 'richardson', 'poly', 'exp', 'polyexp', 'adaexp']
+      noise_values: [1, 2, 3]  # scale factors for noise extrapolation

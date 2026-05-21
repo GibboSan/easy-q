@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 
 import numpy as np
 from qiskit_algorithms.utils import algorithm_globals
@@ -74,9 +75,13 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     backend_name: str = parameter_dict['backend_name']
     is_backend_fake: bool = parameter_dict['is_backend_fake']
     problem_class: str = parameter_dict['problem_class']
-    circuit_class: str = parameter_dict['circuit_class']
-    num_layers: int = parameter_dict['num_layers']
-    num_estimator_shots: int = parameter_dict['num_estimator_shots']
+    solver_class: str = parameter_dict.get('solver_class', 'None')
+    if solver_class.lower() != 'qaoasolver':
+        raise ValueError(f"Expected solver_class='QAOASolver' in params_with_solver.yaml, got {solver_class!r}")
+    solver_params = parameter_dict.get('solver_params', {})
+    circuit_class: str = solver_params.get('circuit_class', 'QAOACircuit')
+    num_layers: int = solver_params.get('num_layers', 1)
+    num_estimator_shots: int = solver_params.get('num_estimator_shots', 10000)
     problem_params: dict = parameter_dict['problem_params']
     performance_params: dict = parameter_dict.get('performance', {})
     only_clifford: bool = performance_params.get('only_clifford', parameter_dict.get('only_clifford', True))
@@ -197,13 +202,11 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
 
     logger.info(f"Noisy simulation run")
     if pruned_noise:
-        logger.info(f"Pruned noise simulation run on Clifford circuit")
         pruned_mneat = MNeat(backend=backend, noise_model=pruned_noise_model)
         tic = time.perf_counter()
         clifford_noisy_value = float(pruned_mneat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
         clifford_noisy_time = time.perf_counter() - tic
     else:
-        logger.info(f"Full noise simulation run on Clifford circuit")
         tic = time.perf_counter()
         clifford_noisy_value = float(mneat.noisy_sim(clifford_pub, cliffordize=False, seed_simulator=seed)[0].vals.item())
         clifford_noisy_time = time.perf_counter() - tic
@@ -212,15 +215,60 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
     # Mitigation
     ###
     if mitigation:
-        logger.info(f"Mitigation run on Clifford circuit with MNEAT")
+        logger.info(f"Mitigation simulation run")
         technique = mitigation_params.get('technique', 'zne')
         technique_params = mitigation_params.get('technique_params', {})
         logger.info(f"Mitigation technique: {technique}")
         kwargs = {}
+        
+        # Handle ZNE-specific parameters
+        if technique == 'zne':
+            from mitiq.zne.inference import LinearFactory, RichardsonFactory, PolyFactory, ExpFactory, PolyExpFactory, AdaExpFactory
+            
+            factory_type = technique_params.get('factory', 'linear')
+            noise_values = technique_params.get('noise_values', [1,2,3])
+            
+            logger.info(f"ZNE factory: {factory_type}, noise_values: {noise_values}")
+            
+            # Create factory based on type
+            if factory_type.lower() == 'richardson':
+                factory = RichardsonFactory(scale_factors=noise_values)
+            elif factory_type.lower() == 'poly':
+                factory = PolyFactory(scale_factors=noise_values)
+            elif factory_type.lower() == 'exp':
+                factory = ExpFactory(scale_factors=noise_values)
+            elif factory_type.lower() == 'polyexp':
+                factory = PolyExpFactory(scale_factors=noise_values)
+            elif factory_type.lower() == 'adaexp':
+                factory = AdaExpFactory(scale_factors=noise_values)
+            else:  # linear (default)
+                factory = LinearFactory(scale_factors=noise_values)
+            
+            kwargs['factory'] = factory
+        
         tic = time.perf_counter()
         clifford_mitigated_value = float(mneat.mitigated_sim(clifford_pub, cliffordize=False, seed_simulator=seed, technique=technique, kwargs=kwargs)[0].vals.item())
         clifford_mitigated_time = time.perf_counter() - tic
+        
+        # Save factory plot if ZNE and plot can be generated
+        if technique == 'zne' and 'factory' in kwargs:
+            try:
+                import matplotlib.pyplot as plt
+                os.makedirs(output_folder, exist_ok=True)
+                factory = kwargs['factory']
+                
+                # Plot the factory (this creates a figure with the extrapolation curve)
+                factory.plot_fit()
+                plot_path = os.path.join(output_folder, 'zne_factory_fit.png')
+                plt.savefig(plot_path, dpi=150, bbox_inches='tight')
+                plt.close()
+                logger.info(f"Saved ZNE factory plot to {plot_path}")
+            except Exception as e:
+                logger.warning(f"Could not save ZNE factory plot: {e}")
 
+    ###
+    # Print results
+    ###
     if not only_clifford:
         logger.info(f"Ideal Estimator Value:           {ideal_value}")
         logger.info(f"Noisy Estimator Value:      {noisy_value}")
@@ -272,5 +320,6 @@ def estimator_performance_run(parameter_dict: dict) -> dict:
         "noisy_estimation_time": noisy_time if not only_clifford else None,
         "clifford_ideal_estimation_time": clifford_ideal_time,
         "clifford_noisy_estimation_time": clifford_noisy_time,
-        "clifford_mitigated_estimation_time": clifford_mitigated_time if mitigation else None
+        "clifford_mitigated_estimation_time": clifford_mitigated_time if mitigation else None,
+        "zne_factory_plot": os.path.join(output_folder, 'zne_factory_fit.png') if (mitigation and technique == 'zne') else None
     }

@@ -58,6 +58,7 @@ def main():
     output_dict = estimator_performance_run(parameter_dict)
 
     logger.info(f"writing output file: {output_folder}/output.json")
+    os.makedirs(output_folder, exist_ok=True)
     with open(f"{output_folder}/output.json", "w") as f:
         json.dump(output_dict, f, indent=4)
 

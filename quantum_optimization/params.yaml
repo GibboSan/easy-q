@@ -31,3 +31,8 @@ num_sampler_shots: 100000
 performance:
   only_clifford: True
   pruned_noise: False
+  use_general_observables: False
+  mitigation_params:
+    technique: 'zne'
+    # technique_params:
+    #   factory: 'LinearFactory'
