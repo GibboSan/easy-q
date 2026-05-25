@@ -1,0 +1,21 @@
+[2026-05-22 14:46:14,328] INFO: reading parameters file: 'M2_P8_S555_Fadaexp/M2_P8_S555_Fadaexp.yaml'
+[2026-05-22 14:46:14,333] INFO: Using seed 555
+[2026-05-22 14:46:14,334] INFO: Output will be written in M2_P8_S555_Fadaexp_out
+[2026-05-22 14:46:14,334] INFO: Building backend ibm_marrakesh (AerSimulator)
+[2026-05-22 14:46:28,537] INFO: Building SimpleProductionPlanningProblem
+[2026-05-22 14:46:33,933] INFO: The problem has 22 logic qubits
+[2026-05-22 14:46:33,943] INFO: Building AncillaQAOACircuit with 2 layers
+[2026-05-22 14:46:33,965] INFO: Getting virtual circuit metrics
+[2026-05-22 14:46:33,969] INFO: Transpiling AncillaQAOACircuit for ibm_marrakesh
+[2026-05-22 14:46:34,500] INFO: Getting transpiled circuit metrics
+[2026-05-22 14:46:34,547] INFO: Assigning random parameters to the transpiled circuit
+[2026-05-22 14:46:34,554] INFO: Preparing Hamiltonian for Estimator
+[2026-05-22 14:46:34,555] INFO: Clifford Noise Analysis with MNEAT
+[2026-05-22 14:46:35,978] INFO: Virtual QC Metrics:    {'depth': 58, '2q_gates': 292, 'clifford_gates': 46, 'non_clifford_gates': 324, 't_gates': 0, 'total_gates': 370, 'num_active_qubits': 30}
+[2026-05-22 14:46:35,979] INFO: Transpiled QC Metrics: {'depth': 1738, '2q_gates': 1620, 'clifford_gates': 5839, 'non_clifford_gates': 394, 't_gates': 0, 'total_gates': 6233, 'num_active_qubits': 30}
+[2026-05-22 14:46:35,979] INFO: Clifford QC Metrics:   {'depth': 1738, '2q_gates': 1620, 'clifford_gates': 6233, 'non_clifford_gates': 0, 't_gates': 0, 'total_gates': 6233, 'num_active_qubits': 30}
+[2026-05-22 14:46:35,979] INFO: Hamiltonian estimation with MNEAT on Clifford circuit
+[2026-05-22 14:46:35,979] INFO: Ideal simulation run
+[2026-05-22 14:46:36,839] INFO: Noisy simulation run
+[2026-05-22 14:47:30,268] INFO: Mitigation simulation run with technique: zne
+[2026-05-22 14:47:30,268] INFO: ZNE factory: adaexp, noise_values: [1, 2, 3]

@@ -1,35 +1,62 @@
 seed: 12345
-output_folder: "./delme_torino"
-backend_name: "ibm_torino"            # [null, "<backend_name>"]  
+output_folder: "./delme_performance"
+backend_name: 'ibm_marrakesh'                     # [null, "<backend_name>"]
 is_backend_fake: True
-problem_class: "SimpleProductionPlanningProblem"        # [MaxCutProblem, QGSProblem, QGSUncProblem]
+
+# Problem ["MaxCutProblem", "QGSProblem", "QGSUncProblem", "SimpleProductionPlanningProblem"]
+problem_class: "SimpleProductionPlanningProblem"
 problem_params:
-  # n_nodes: 5                          # MaxCutProblem
-  # density: 0.7                        # MaxCutProblem
-  # num_groups: 3                       # QGSProblem
-  # num_instruments_per_group: 5        # QGSProblem
-  num_machines: 3                      # SimpleProductionPlanningProblem
-  num_products: 3                      # SimpleProductionPlanningProblem
-circuit_class: "AncillaQAOACircuit"
-num_layers: 3
-num_estimator_shots: 100000
+  n_nodes: 7                           # MaxCutProblem
+  density: 0.7                         # MaxCutProblem
+  num_groups: 5                        # QGSProblem
+  num_instruments_per_group: 2         # QGSProblem
+  num_machines: 2                      # SimpleProductionPlanningProblem
+  num_products: 8                      # SimpleProductionPlanningProblem
 
-# optimization parameters
-num_starting_points: 1
-lower_bound: 0.0
-upper_bound: 3.15
-optimization_params:
-  optimizer: "SPSA"
-  tolerance: 0.1
-  maxiter: 1
-  learning_rate: 0.1
-  perturbation: 0.1
-use_cache: False
-cache_filename: "delme/cache.yaml"
-cache_save_every: 1
-num_sampler_shots: 100000
+# Solver ["QAOASolver", "FWALSolver", "ClassicalSolver"]
 
-# performance parameters
+# Example direct QAOASolver setup:
+solver_class: "QAOASolver"
+solver_params:
+  circuit_class: "AncillaQAOACircuit"
+  num_layers: 2
+  num_starting_points: 1
+  lower_bound: 0.0
+  upper_bound: 6.2832
+  num_estimator_shots: 1024
+  num_sampler_shots: 4096
+
+# Example FWALSolver setup
+# solver_class: "FWALSolver"
+# solver_params:
+#   num_fw_iterations: 20
+#   beta0: 1.0
+#   dual_step_rule: "constant"
+#   rounding_project: True
+#   convergence_tol: 1.0e-4
+
+#   # Nested LMO solver config for FWALSolver.
+#   lmo_solver_class: "ClassicalSolver"
+#   lmo_solver_params: {}
+
+  # Example QAOA-based LMO config:
+  # lmo_solver_class: "QAOASolver"
+  # lmo_solver_params:
+  #   circuit_class: "AncillaQAOACircuit"
+  #   num_layers: 1
+  #   num_starting_points: 3
+  #   lower_bound: 0.0
+  #   upper_bound: 6.2832
+  #   num_estimator_shots: 1024
+  #   num_sampler_shots: 2048
+
+# Performance parameters
 performance:
   only_clifford: True
   pruned_noise: False
+  use_general_observables: False
+  mitigation_params:
+    technique: 'zne'
+    technique_params:
+      factory: linear  # ['linear' (default), 'richardson', 'poly', 'exp', 'polyexp', 'adaexp']
+      noise_values: [1, 2, 3]  # scale factors for noise extrapolation

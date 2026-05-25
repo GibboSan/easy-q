@@ -1,0 +1,35 @@
+[2026-05-22 14:28:49,885] INFO: reading parameters file: 'M2_P6_S111_Frichardson/M2_P6_S111_Frichardson.yaml'
+[2026-05-22 14:28:49,892] INFO: Using seed 111
+[2026-05-22 14:28:49,892] INFO: Output will be written in M2_P6_S111_Frichardson_out
+[2026-05-22 14:28:49,892] INFO: Building backend ibm_marrakesh (AerSimulator)
+[2026-05-22 14:29:04,486] INFO: Building SimpleProductionPlanningProblem
+[2026-05-22 14:29:05,084] INFO: The problem has 18 logic qubits
+[2026-05-22 14:29:05,091] INFO: Building AncillaQAOACircuit with 2 layers
+[2026-05-22 14:29:05,111] INFO: Getting virtual circuit metrics
+[2026-05-22 14:29:05,114] INFO: Transpiling AncillaQAOACircuit for ibm_marrakesh
+[2026-05-22 14:29:05,574] INFO: Getting transpiled circuit metrics
+[2026-05-22 14:29:05,611] INFO: Assigning random parameters to the transpiled circuit
+[2026-05-22 14:29:05,618] INFO: Preparing Hamiltonian for Estimator
+[2026-05-22 14:29:05,618] INFO: Clifford Noise Analysis with MNEAT
+[2026-05-22 14:29:07,453] INFO: Virtual QC Metrics:    {'depth': 48, '2q_gates': 198, 'clifford_gates': 36, 'non_clifford_gates': 228, 't_gates': 0, 'total_gates': 264, 'num_active_qubits': 24}
+[2026-05-22 14:29:07,453] INFO: Transpiled QC Metrics: {'depth': 1051, '2q_gates': 1046, 'clifford_gates': 3798, 'non_clifford_gates': 267, 't_gates': 0, 'total_gates': 4065, 'num_active_qubits': 24}
+[2026-05-22 14:29:07,454] INFO: Clifford QC Metrics:   {'depth': 1051, '2q_gates': 1046, 'clifford_gates': 4065, 'non_clifford_gates': 0, 't_gates': 0, 'total_gates': 4065, 'num_active_qubits': 24}
+[2026-05-22 14:29:07,454] INFO: Hamiltonian estimation with MNEAT on Clifford circuit
+[2026-05-22 14:29:07,454] INFO: Ideal simulation run
+[2026-05-22 14:29:08,028] INFO: Noisy simulation run
+[2026-05-22 14:29:30,658] INFO: Mitigation simulation run with technique: zne
+[2026-05-22 14:29:30,658] INFO: ZNE factory: richardson, noise_values: [1, 2, 3]
+[2026-05-22 14:31:37,853] INFO: Saved ZNE factory plot to M2_P6_S111_Frichardson_out/zne_factory_fit.png
+[2026-05-22 14:31:37,853] INFO: Clifford Ideal Estimator Value:       -217.376953125
+[2026-05-22 14:31:37,853] INFO: Clifford Noisy Estimator Value:       -81.1708984375
+[2026-05-22 14:31:37,854] INFO: Clifford Mitigated Estimator Value:   -179.6445312500003
+[2026-05-22 14:31:37,854] INFO: Error % of Noisy vs Ideal:       62.66%
+[2026-05-22 14:31:37,854] INFO: Error % of Mitigated vs Ideal:   17.36%
+[2026-05-22 14:31:37,854] INFO: Circuit creation time:       0.0199 seconds
+[2026-05-22 14:31:37,854] INFO: Transpilation time:          0.4598 seconds
+[2026-05-22 14:31:37,854] INFO: Clifford Transpilation time: 0.0312 seconds
+[2026-05-22 14:31:37,854] INFO: Clifford Ideal Estimation time:       0.5743 seconds
+[2026-05-22 14:31:37,854] INFO: Clifford Noisy Estimation time:       22.6295 seconds
+[2026-05-22 14:31:37,854] INFO: Clifford Mitigated Estimation time:   126.6625 seconds
+[2026-05-22 14:31:37,854] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-05-22 14:31:37,877] INFO: writing output file: M2_P6_S111_Frichardson_out/output.json

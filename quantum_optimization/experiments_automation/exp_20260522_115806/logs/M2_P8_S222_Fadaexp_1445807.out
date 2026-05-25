@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 67, in <module>
+    main()
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 58, in main
+    output_dict = estimator_performance_run(parameter_dict)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 225, in estimator_performance_run
+    from mitiq.zne.inference import LinearFactory, RichardsonFactory, PolyFactory, ExpFactory, PolyExpFactory, AdaExpFactory
+ModuleNotFoundError: No module named 'mitiq'

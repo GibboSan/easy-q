@@ -1,0 +1,34 @@
+seed: 333
+output_folder: M3_P12_S333_Flinear_out
+backend_name: ibm_marrakesh
+is_backend_fake: true
+problem_class: SimpleProductionPlanningProblem
+problem_params:
+  n_nodes: 7
+  density: 0.7
+  num_groups: 5
+  num_instruments_per_group: 2
+  num_machines: 3
+  num_products: 12
+solver_class: QAOASolver
+solver_params:
+  circuit_class: AncillaQAOACircuit
+  num_layers: 2
+  num_starting_points: 1
+  lower_bound: 0.0
+  upper_bound: 6.2832
+  num_estimator_shots: 1024
+  num_sampler_shots: 4096
+performance:
+  only_clifford: true
+  pruned_noise: false
+  use_general_observables: false
+  mitigation_params:
+    technique: zne
+    technique_params:
+      factory: linear
+      noise_values:
+      - 1
+      - 2
+      - 3
+cache_filename: M3_P12_S333_Flinear_out/cache.yaml

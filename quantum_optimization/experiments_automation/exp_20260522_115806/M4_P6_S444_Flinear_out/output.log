@@ -1,0 +1,35 @@
+[2026-05-22 17:27:32,217] INFO: reading parameters file: 'M4_P6_S444_Flinear/M4_P6_S444_Flinear.yaml'
+[2026-05-22 17:27:32,222] INFO: Using seed 444
+[2026-05-22 17:27:32,222] INFO: Output will be written in M4_P6_S444_Flinear_out
+[2026-05-22 17:27:32,222] INFO: Building backend ibm_marrakesh (AerSimulator)
+[2026-05-22 17:27:45,741] INFO: Building SimpleProductionPlanningProblem
+[2026-05-22 17:27:53,222] INFO: The problem has 32 logic qubits
+[2026-05-22 17:27:53,230] INFO: Building AncillaQAOACircuit with 2 layers
+[2026-05-22 17:27:53,253] INFO: Getting virtual circuit metrics
+[2026-05-22 17:27:53,259] INFO: Transpiling AncillaQAOACircuit for ibm_marrakesh
+[2026-05-22 17:27:54,143] INFO: Getting transpiled circuit metrics
+[2026-05-22 17:27:54,200] INFO: Assigning random parameters to the transpiled circuit
+[2026-05-22 17:27:54,207] INFO: Preparing Hamiltonian for Estimator
+[2026-05-22 17:27:54,207] INFO: Clifford Noise Analysis with MNEAT
+[2026-05-22 17:27:56,150] INFO: Virtual QC Metrics:    {'depth': 83, '2q_gates': 494, 'clifford_gates': 56, 'non_clifford_gates': 538, 't_gates': 0, 'total_gates': 594, 'num_active_qubits': 38}
+[2026-05-22 17:27:56,151] INFO: Transpiled QC Metrics: {'depth': 2288, '2q_gates': 3003, 'clifford_gates': 10660, 'non_clifford_gates': 613, 't_gates': 7, 'total_gates': 11273, 'num_active_qubits': 40}
+[2026-05-22 17:27:56,151] INFO: Clifford QC Metrics:   {'depth': 2288, '2q_gates': 3003, 'clifford_gates': 11273, 'non_clifford_gates': 0, 't_gates': 0, 'total_gates': 11273, 'num_active_qubits': 40}
+[2026-05-22 17:27:56,151] INFO: Hamiltonian estimation with MNEAT on Clifford circuit
+[2026-05-22 17:27:56,151] INFO: Ideal simulation run
+[2026-05-22 17:27:57,745] INFO: Noisy simulation run
+[2026-05-22 17:29:48,552] INFO: Mitigation simulation run with technique: zne
+[2026-05-22 17:29:48,553] INFO: ZNE factory: linear, noise_values: [1, 2, 3]
+[2026-05-22 17:39:46,480] INFO: Saved ZNE factory plot to M4_P6_S444_Flinear_out/zne_factory_fit.png
+[2026-05-22 17:39:46,480] INFO: Clifford Ideal Estimator Value:       -1975.2470703125
+[2026-05-22 17:39:46,480] INFO: Clifford Noisy Estimator Value:       -1117.6923828125
+[2026-05-22 17:39:46,480] INFO: Clifford Mitigated Estimator Value:   -1541.150716145834
+[2026-05-22 17:39:46,480] INFO: Error % of Noisy vs Ideal:       43.42%
+[2026-05-22 17:39:46,481] INFO: Error % of Mitigated vs Ideal:   21.98%
+[2026-05-22 17:39:46,481] INFO: Circuit creation time:       0.0231 seconds
+[2026-05-22 17:39:46,481] INFO: Transpilation time:          0.8837 seconds
+[2026-05-22 17:39:46,481] INFO: Clifford Transpilation time: 0.6355 seconds
+[2026-05-22 17:39:46,481] INFO: Clifford Ideal Estimation time:       1.5945 seconds
+[2026-05-22 17:39:46,481] INFO: Clifford Noisy Estimation time:       110.8071 seconds
+[2026-05-22 17:39:46,481] INFO: Clifford Mitigated Estimation time:   597.6586 seconds
+[2026-05-22 17:39:46,481] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-05-22 17:39:46,509] INFO: writing output file: M4_P6_S444_Flinear_out/output.json

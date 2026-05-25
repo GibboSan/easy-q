@@ -1,0 +1,4 @@
+/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py:41: FutureWarning: mitiq.experimental.pea is experimental and its API may change without notice in future releases. It is not covered by mitiq's semantic versioning guarantees.
+  from mitiq.experimental.pea.pea import execute_with_pea
+/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py:124: ExtrapolationWarning: The extrapolation fit may be ill-conditioned. Likely, more data points are necessary to fit the parameters of the model.
+  opt_params, params_cov = curve_fit(

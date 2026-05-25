@@ -1,11 +1,15 @@
 problem_params.num_machines:
-  values: [3, 5, 7, 9]
+  values: [2, 3, 4]
   label: "M"
 
 problem_params.num_products:
-  values: [3, 5, 7, 9]
+  values: [6, 8, 10, 12]
   label: "P"
 
 seed:
-  values: [11111, 22222, 33333, 44444, 55555]
+  values: [111, 222, 333, 444, 555]
   label: "S"
+
+performance.mitigation_params.technique_params.factory:
+  values: ['linear', 'richardson', 'adaexp']
+  label: "F"

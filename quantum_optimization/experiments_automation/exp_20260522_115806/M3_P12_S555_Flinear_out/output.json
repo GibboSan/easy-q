@@ -1,0 +1,74 @@
+{
+    "seed": 555,
+    "problem_class": "SimpleProductionPlanningProblem",
+    "problem_params": {
+        "n_nodes": 7,
+        "density": 0.7,
+        "num_groups": 5,
+        "num_instruments_per_group": 2,
+        "num_machines": 3,
+        "num_products": 12
+    },
+    "circuit_class": "AncillaQAOACircuit",
+    "layers": 2,
+    "backend": "ibm_marrakesh",
+    "logic_qubits": 45,
+    "backend_qubits": 156,
+    "virtual_qc_metrics": {
+        "depth": 108,
+        "2q_gates": 918,
+        "clifford_gates": 81,
+        "non_clifford_gates": 978,
+        "t_gates": 0,
+        "total_gates": 1059,
+        "num_active_qubits": 57
+    },
+    "transpiled_qc_metrics": {
+        "depth": 4407,
+        "2q_gates": 6488,
+        "clifford_gates": 22469,
+        "non_clifford_gates": 1235,
+        "t_gates": 16,
+        "total_gates": 23704,
+        "num_active_qubits": 63
+    },
+    "clifford_qc_metrics": {
+        "depth": 4407,
+        "2q_gates": 6488,
+        "clifford_gates": 23704,
+        "non_clifford_gates": 0,
+        "t_gates": 0,
+        "total_gates": 23704,
+        "num_active_qubits": 63
+    },
+    "performance": {
+        "only_clifford": true,
+        "pruned_noise": false
+    },
+    "mitigation_technique": "zne",
+    "mitigation_params": {
+        "factory": "linear",
+        "noise_values": [
+            1,
+            2,
+            3
+        ]
+    },
+    "num_estimator_shots": 1024,
+    "ideal_energy": null,
+    "noisy_energy": null,
+    "clifford_ideal_energy": -4317.2802734375,
+    "clifford_noisy_energy": -965.4873046875,
+    "clifford_mitigated_energy": -1274.1572265625002,
+    "error_pct_noisy": 77.63667764106589,
+    "error_pct_mitigated": 70.48703938908298,
+    "circuit_creation_time": 0.06828962800500449,
+    "transpilation_time": 1.906889431993477,
+    "transpilation_clifford_time": 0.13905491400510073,
+    "ideal_estimation_time": null,
+    "noisy_estimation_time": null,
+    "clifford_ideal_estimation_time": 5.937254200005555,
+    "clifford_noisy_estimation_time": 222.72393320899573,
+    "clifford_mitigated_estimation_time": 1217.7794187340041,
+    "zne_factory_plot": "M3_P12_S555_Flinear_out/zne_factory_fit.png"
+}

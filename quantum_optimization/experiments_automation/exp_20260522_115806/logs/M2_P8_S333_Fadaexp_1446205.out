@@ -1,0 +1,43 @@
+/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py:41: FutureWarning: mitiq.experimental.pea is experimental and its API may change without notice in future releases. It is not covered by mitiq's semantic versioning guarantees.
+  from mitiq.experimental.pea.pea import execute_with_pea
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 67, in <module>
+    main()
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 58, in main
+    output_dict = estimator_performance_run(parameter_dict)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 249, in estimator_performance_run
+    clifford_mitigated_value = float(mneat.mitigated_sim(clifford_pub, cliffordize=False, seed_simulator=seed, technique=technique, kwargs=kwargs)[0].vals.item())
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py", line 570, in mitigated_sim
+    val = self._mitigate_value(
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py", line 358, in _mitigate_value
+    value = zne.execute_with_zne(
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/zne.py", line 112, in execute_with_zne
+    return factory.run(
+           ^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 770, in run
+    return self.run_classical(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 700, in run_classical
+    next_in_params = self.next()
+                     ^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 1571, in next
+    self.reduce()
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 1670, in reduce
+    ) = self.extrapolate(  # type: ignore [misc]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 1648, in extrapolate
+    return ExpFactory.extrapolate(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 1186, in extrapolate
+    return PolyExpFactory.extrapolate(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 1380, in extrapolate
+    opt_params, params_cov = mitiq_curve_fit(
+                             ^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 137, in mitiq_curve_fit
+    raise ExtrapolationError(_EXTR_ERR) from None
+mitiq.zne.inference.ExtrapolationError: The extrapolation fit failed to converge. The problem may be solved by switching to a more stable extrapolation model such as `LinearFactory`.

@@ -1,0 +1,35 @@
+[2026-05-22 18:11:34,881] INFO: reading parameters file: 'M4_P10_S111_Fadaexp/M4_P10_S111_Fadaexp.yaml'
+[2026-05-22 18:11:34,908] INFO: Using seed 111
+[2026-05-22 18:11:34,908] INFO: Output will be written in M4_P10_S111_Fadaexp_out
+[2026-05-22 18:11:34,908] INFO: Building backend ibm_marrakesh (AerSimulator)
+[2026-05-22 18:11:47,404] INFO: Building SimpleProductionPlanningProblem
+[2026-05-22 18:16:47,731] INFO: The problem has 48 logic qubits
+[2026-05-22 18:16:47,743] INFO: Building AncillaQAOACircuit with 2 layers
+[2026-05-22 18:16:47,787] INFO: Getting virtual circuit metrics
+[2026-05-22 18:16:47,795] INFO: Transpiling AncillaQAOACircuit for ibm_marrakesh
+[2026-05-22 18:16:49,487] INFO: Getting transpiled circuit metrics
+[2026-05-22 18:16:49,596] INFO: Assigning random parameters to the transpiled circuit
+[2026-05-22 18:16:49,608] INFO: Preparing Hamiltonian for Estimator
+[2026-05-22 18:16:49,608] INFO: Clifford Noise Analysis with MNEAT
+[2026-05-22 18:16:51,514] INFO: Virtual QC Metrics:    {'depth': 119, '2q_gates': 978, 'clifford_gates': 88, 'non_clifford_gates': 1030, 't_gates': 0, 'total_gates': 1118, 'num_active_qubits': 58}
+[2026-05-22 18:16:51,515] INFO: Transpiled QC Metrics: {'depth': 4591, '2q_gates': 6728, 'clifford_gates': 23535, 'non_clifford_gates': 1259, 't_gates': 10, 'total_gates': 24794, 'num_active_qubits': 60}
+[2026-05-22 18:16:51,515] INFO: Clifford QC Metrics:   {'depth': 4591, '2q_gates': 6728, 'clifford_gates': 24794, 'non_clifford_gates': 0, 't_gates': 0, 'total_gates': 24794, 'num_active_qubits': 60}
+[2026-05-22 18:16:51,515] INFO: Hamiltonian estimation with MNEAT on Clifford circuit
+[2026-05-22 18:16:51,515] INFO: Ideal simulation run
+[2026-05-22 18:16:56,576] INFO: Noisy simulation run
+[2026-05-22 18:21:06,233] INFO: Mitigation simulation run with technique: zne
+[2026-05-22 18:21:06,234] INFO: ZNE factory: adaexp, noise_values: [1, 2, 3]
+[2026-05-22 18:54:21,562] INFO: Saved ZNE factory plot to M4_P10_S111_Fadaexp_out/zne_factory_fit.png
+[2026-05-22 18:54:21,563] INFO: Clifford Ideal Estimator Value:       -9492.3134765625
+[2026-05-22 18:54:21,563] INFO: Clifford Noisy Estimator Value:       -2569.1728515625
+[2026-05-22 18:54:21,563] INFO: Clifford Mitigated Estimator Value:   -10278.224360461603
+[2026-05-22 18:54:21,563] INFO: Error % of Noisy vs Ideal:       72.93%
+[2026-05-22 18:54:21,563] INFO: Error % of Mitigated vs Ideal:   8.28%
+[2026-05-22 18:54:21,563] INFO: Circuit creation time:       0.0435 seconds
+[2026-05-22 18:54:21,563] INFO: Transpilation time:          1.6916 seconds
+[2026-05-22 18:54:21,563] INFO: Clifford Transpilation time: 0.1114 seconds
+[2026-05-22 18:54:21,563] INFO: Clifford Ideal Estimation time:       5.0617 seconds
+[2026-05-22 18:54:21,563] INFO: Clifford Noisy Estimation time:       249.6566 seconds
+[2026-05-22 18:54:21,563] INFO: Clifford Mitigated Estimation time:   1994.3269 seconds
+[2026-05-22 18:54:21,563] INFO: ESTIMATOR PERFORMANCE RUN COMPLETED.
+[2026-05-22 18:54:21,569] INFO: writing output file: M4_P10_S111_Fadaexp_out/output.json

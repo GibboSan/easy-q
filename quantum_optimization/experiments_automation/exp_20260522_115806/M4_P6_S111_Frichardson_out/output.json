@@ -1,0 +1,74 @@
+{
+    "seed": 111,
+    "problem_class": "SimpleProductionPlanningProblem",
+    "problem_params": {
+        "n_nodes": 7,
+        "density": 0.7,
+        "num_groups": 5,
+        "num_instruments_per_group": 2,
+        "num_machines": 4,
+        "num_products": 6
+    },
+    "circuit_class": "AncillaQAOACircuit",
+    "layers": 2,
+    "backend": "ibm_marrakesh",
+    "logic_qubits": 32,
+    "backend_qubits": 156,
+    "virtual_qc_metrics": {
+        "depth": 83,
+        "2q_gates": 494,
+        "clifford_gates": 56,
+        "non_clifford_gates": 538,
+        "t_gates": 0,
+        "total_gates": 594,
+        "num_active_qubits": 38
+    },
+    "transpiled_qc_metrics": {
+        "depth": 2634,
+        "2q_gates": 2965,
+        "clifford_gates": 10595,
+        "non_clifford_gates": 663,
+        "t_gates": 6,
+        "total_gates": 11258,
+        "num_active_qubits": 38
+    },
+    "clifford_qc_metrics": {
+        "depth": 2634,
+        "2q_gates": 2965,
+        "clifford_gates": 11258,
+        "non_clifford_gates": 0,
+        "t_gates": 0,
+        "total_gates": 11258,
+        "num_active_qubits": 38
+    },
+    "performance": {
+        "only_clifford": true,
+        "pruned_noise": false
+    },
+    "mitigation_technique": "zne",
+    "mitigation_params": {
+        "factory": "richardson",
+        "noise_values": [
+            1,
+            2,
+            3
+        ]
+    },
+    "num_estimator_shots": 1024,
+    "ideal_energy": null,
+    "noisy_energy": null,
+    "clifford_ideal_energy": -2299.9208984375,
+    "clifford_noisy_energy": -1132.5341796875,
+    "clifford_mitigated_energy": -1909.2763671875018,
+    "error_pct_noisy": 50.75768995112349,
+    "error_pct_mitigated": 16.985128989235708,
+    "circuit_creation_time": 0.022538714998518117,
+    "transpilation_time": 0.852330013003666,
+    "transpilation_clifford_time": 0.06013203899783548,
+    "ideal_estimation_time": null,
+    "noisy_estimation_time": null,
+    "clifford_ideal_estimation_time": 1.9654762230056804,
+    "clifford_noisy_estimation_time": 105.68352991799475,
+    "clifford_mitigated_estimation_time": 586.9281378779997,
+    "zne_factory_plot": "M4_P6_S111_Frichardson_out/zne_factory_fit.png"
+}

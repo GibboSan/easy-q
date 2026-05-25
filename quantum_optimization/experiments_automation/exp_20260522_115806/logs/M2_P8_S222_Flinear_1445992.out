@@ -1,0 +1,38 @@
+/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py:41: FutureWarning: mitiq.experimental.pea is experimental and its API may change without notice in future releases. It is not covered by mitiq's semantic versioning guarantees.
+  from mitiq.experimental.pea.pea import execute_with_pea
+Traceback (most recent call last):
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 67, in <module>
+    main()
+  File "/extra/gsanguin/easy-q/quantum_optimization/experiments_automation/exp_20260522_115806/../../run_performance.py", line 58, in main
+    output_dict = estimator_performance_run(parameter_dict)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/performance.py", line 249, in estimator_performance_run
+    clifford_mitigated_value = float(mneat.mitigated_sim(clifford_pub, cliffordize=False, seed_simulator=seed, technique=technique, kwargs=kwargs)[0].vals.item())
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py", line 570, in mitigated_sim
+    val = self._mitigate_value(
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py", line 358, in _mitigate_value
+    value = zne.execute_with_zne(
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/zne.py", line 112, in execute_with_zne
+    return factory.run(
+           ^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/zne/inference.py", line 536, in run
+    _check_circuit_length(qp)
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/interface/conversions.py", line 242, in accept_any_qprogram_function
+    cirq_circuit, _ = convert_to_mitiq(circuit)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/interface/conversions.py", line 97, in convert_to_mitiq
+    from mitiq.interface.mitiq_qiskit.conversions import from_qiskit
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/interface/mitiq_qiskit/__init__.py", line 6, in <module>
+    from mitiq.interface.mitiq_qiskit.conversions import (
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/mitiq/interface/mitiq_qiskit/conversions.py", line 16, in <module>
+    from cirq.contrib.qasm_import import circuit_from_qasm
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/cirq/contrib/qasm_import/__init__.py", line 16, in <module>
+    from cirq.contrib.qasm_import.qasm import circuit_from_qasm as circuit_from_qasm
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/cirq/contrib/qasm_import/qasm.py", line 19, in <module>
+    from cirq.contrib.qasm_import._parser import QasmParser
+  File "/extra/gsanguin/easy-q/.venv/lib/python3.11/site-packages/cirq/contrib/qasm_import/_parser.py", line 24, in <module>
+    from ply import yacc
+ModuleNotFoundError: No module named 'ply'
