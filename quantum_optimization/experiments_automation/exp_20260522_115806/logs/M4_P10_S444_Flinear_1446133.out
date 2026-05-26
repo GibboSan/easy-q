@@ -1,3 +1,0 @@
-/extra/gsanguin/easy-q/quantum_optimization/pipeline/mneat.py:41: FutureWarning: mitiq.experimental.pea is experimental and its API may change without notice in future releases. It is not covered by mitiq's semantic versioning guarantees.
-  from mitiq.experimental.pea.pea import execute_with_pea
-slurmstepd-hpblade08: error: *** JOB 1446133 ON hpblade08 CANCELLED AT 2026-05-22T14:15:52 ***
