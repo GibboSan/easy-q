@@ -29,6 +29,7 @@ from pipeline.utils import (
     get_circuit_metrics,
 )
 from pipeline.plotter import Plotter
+from quantum_optimization.pipeline.qaoa_circuits.qaoa_circuit import QAOACircuit
 
 logger = logging.getLogger("pipeline_logger")
 
@@ -121,7 +122,7 @@ class QAOASolver(AbstractSolver):
             "pipeline.qaoa_circuits", 
             self.circuit_class
         )
-        qaoa = CircuitClass(
+        qaoa: QAOACircuit = CircuitClass(
             self.seed,
             problem,
             num_qubits,
