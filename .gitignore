@@ -25,7 +25,10 @@ pyproject.toml
 # VS Code settings
 .vscode/
 
-# Results datasets
+# Experiments
+exp_*/
+
+# Datasets
 *.csv
 *.xlsx
 
